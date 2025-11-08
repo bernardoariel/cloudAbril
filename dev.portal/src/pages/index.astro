@@ -1,0 +1,66 @@
+﻿---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import Sheet from '../components/Sheet.astro';
+import ProductsGrid from '../components/ProductsGrid.astro';
+import { products } from '../data/products';
+import { offers } from '../data/offers';
+import { setTheme, ThemeType } from '../lib/theme';
+
+// ejemplo: fijar tema por código (sin UI)
+if (typeof window !== 'undefined') {
+  setTheme(ThemeType.Old); // cambiá por el que quieras
+}
+---
+<BaseLayout title="Abril Amoblamientos">
+  <Hero src="/hero-2193x827.jpg" alt="Abril Amoblamientos" />
+  
+  <Sheet>
+    <!-- Bienvenida -->
+    <div class="text-center mb-8">
+      <h2 class="text-2xl font-bold text-[var(--brand)] mb-2">Bienvenido</h2>
+      <p class="text-gray-600">Elegí por categoría o mirá las ofertas del mes.</p>
+    </div>
+
+    <!-- Ofertas -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800">Ofertas del mes</h3>
+      <div class="grid gap-3 sm:grid-cols-2">
+        {offers.map((o) => (
+          <div class="bg-[var(--brand)] text-white rounded-lg p-4 text-center">
+            <span class="font-semibold">{o}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Productos -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800">Destacados</h3>
+      <ProductsGrid items={products} />
+    </div>
+
+    <!-- Sección CTA Portal -->
+    <div class="border-t border-gray-200 pt-8">
+      <div class="text-center">
+        <h3 class="text-xl font-semibold text-gray-800 mb-3">¿Sos cliente mayorista?</h3>
+        <p class="text-gray-600 mb-6 max-w-lg mx-auto">
+          Accedé a nuestro portal exclusivo para gestionar pedidos, ver catálogos especiales y más.
+        </p>
+        <a 
+          href="/ingresar" 
+          class="inline-flex items-center gap-2 bg-[var(--brand)] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[var(--accent)] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+          </svg>
+          Ingresar al Portal
+        </a>
+      </div>
+    </div>
+  </Sheet>
+
+  <footer class="mt-12 py-8 text-center text-sm text-gray-500">
+    <div>abrilamoblamientos.com.ar • Vive en vos</div>
+  </footer>
+</BaseLayout>

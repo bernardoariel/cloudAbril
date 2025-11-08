@@ -1,0 +1,17 @@
+﻿:root { /* fallback */
+  --brand:#7A1FA2; --accent:#FF4DD2; --bg:#FFF7FA; --text:#222;
+}
+
+:root[data-theme="actual"] {
+  --brand:#7A1FA2; --accent:#FF4DD2; --bg:#FFF7FA; --text:#222;
+}
+
+/* esquema naranja de antes */
+:root[data-theme="old"] {
+  --brand:#FF8A00; --accent:#FF3D00; --bg:#FFF7EE; --text:#221F1A;
+}
+
+/* ejemplo de mes */
+:root[data-theme="octubre"] {
+  --brand:#6F2DBD; --accent:#C32BAD; --bg:#FCF0FF; --text:#1E1E1E;
+}

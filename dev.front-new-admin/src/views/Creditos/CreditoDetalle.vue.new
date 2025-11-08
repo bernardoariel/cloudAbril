@@ -1,0 +1,291 @@
+<template>
+  <div>
+    <AdminLayout>
+      <BreadCrumb :pages="pages" />
+      <div class="grid grid-cols-1 gap-6">
+        <!-- Detalles del crédito -->
+        <div class="bg-white dark:bg-gray-900/80 rounded-lg shadow-sm p-6">
+          <div v-if="isLoading" class="flex justify-center items-center h-40">
+            <LoadingSpinner />
+          </div>
+          <div v-else-if="error" class="text-error-600 dark:text-error-500 p-4">
+            Error al cargar los datos: {{ error }}
+          </div>
+          <div v-else-if="credito === null || credito === undefined" class="text-error-600 dark:text-error-500 p-4">
+            No se han podido cargar los datos del crédito. Por favor, verifica el código de crédito: {{ codReciboPr }}
+          </div>
+          <div v-else-if="credito">
+            <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+              Crédito #{{ codCredito }} ({{ codReciboPr }})
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-sm text-gray-500 dark:text-gray-400">Código del Recibo</h3>
+                <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ credito.codReciboPr }}</p>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-sm text-gray-500 dark:text-gray-400">Número de Cuota</h3>
+                <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ credito.nroCuota }}</p>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-sm text-gray-500 dark:text-gray-400">Monto Cuota</h3>
+                <p class="text-xl font-semibold text-gray-900 dark:text-white">${{ credito.montoCuo?.toFixed(2) }}</p>
+              </div>
+            </div>
+
+            <!-- Vista simplificada para una sola cuota -->
+            <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg mb-6">
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Detalle del pago</h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Número de cuota</p>
+                  <p class="text-xl font-medium text-gray-900 dark:text-white">{{ credito.nroCuota }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Monto de la cuota</p>
+                  <p class="text-xl font-medium text-gray-900 dark:text-white">${{ credito.montoCuo?.toFixed(2) }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Intereses punitorios</p>
+                  <p class="text-xl font-medium text-gray-900 dark:text-white">${{ credito.intPunit?.toFixed(2) }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Total a pagar</p>
+                  <p class="text-xl font-bold text-gray-900 dark:text-white">${{ (credito.montoCuo + credito.intPunit)?.toFixed(2) }}</p>
+                </div>
+              </div>
+              
+              <div class="flex justify-center">
+                <button
+                  @click="realizarPagoSimple(credito)"
+                  class="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-md transition-colors shadow-sm text-white bg-blue-600 hover:bg-blue-700 border border-blue-600"
+                >
+                  <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Pagar ${{ (credito.montoCuo + credito.intPunit)?.toFixed(2) }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Sección de depuración -->
+            <details class="mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg" open>
+              <summary class="text-sm font-medium cursor-pointer text-gray-600 dark:text-gray-400">
+                Datos del composable (Depuración)
+              </summary>
+              <div class="mt-3 overflow-x-auto">
+                <div class="p-2">
+                  <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <h4 class="font-medium mb-1 text-gray-700 dark:text-gray-300">Información de la petición:</h4>
+                      <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md">
+                        <p><strong>Código Recibo:</strong> {{ codReciboPr }}</p>
+                        <p><strong>Código Crédito:</strong> {{ codCredito }}</p>
+                        <p><strong>Estado de carga:</strong> {{ isLoading ? 'Cargando...' : 'Completado' }}</p>
+                        <p><strong>Error:</strong> {{ error ? error.message : 'Ninguno' }}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 class="font-medium mb-1 text-gray-700 dark:text-gray-300">Estructura de datos:</h4>
+                      <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md">
+                        <p><strong>¿Hay datos?</strong> {{ credito ? 'Sí' : 'No' }}</p>
+                        <p v-if="credito"><strong>Tipo:</strong> {{ typeof credito }}</p>
+                        <p v-if="credito"><strong>Propiedades:</strong> {{ Object.keys(credito).join(', ') }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <h4 class="font-medium mb-2 text-gray-700 dark:text-gray-300">Datos completos:</h4>
+                  <pre v-if="credito" class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md overflow-auto max-h-80 text-xs">{{ JSON.stringify(credito, null, 2) }}</pre>
+                  <p v-else class="text-gray-500 dark:text-gray-400">No hay datos disponibles</p>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </AdminLayout>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
+import BreadCrumb from '@/components/ui/Breadcrumb.vue'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import { useClienteCreditoRecProvDetalle } from '@/composables/useClienteCreditoRecProvDetalle'
+import axios from 'axios'
+import '@/assets/css/mercado-pago.css'
+import mercadoPagoService from '@/services/mercadoPago.service'
+import type { ClienteCreditoRecProvDetalle } from '@/interface/ClienteCreditoRecProvDetalle'
+import type { Detalle } from '@/interface/ClienteCreditoPagos'
+
+const route = useRoute()
+const codReciboPr = ref(route.params.codReciboPr as string || '')
+const codCredito = ref(codReciboPr.value)
+const processingCuota = ref<number | null>(null) // Tracking qué cuota está en proceso
+const isDevelopment = process.env.NODE_ENV !== 'production'
+const mercadoPagoPublicKey = 'APP_USR-0592010c-6b73-4480-ba4e-e058a011f9ec'
+
+onMounted(() => {
+  // Cargar el script de Mercado Pago
+  const script = document.createElement('script')
+  script.src = 'https://sdk.mercadopago.com/js/v2'
+  script.async = true
+  document.body.appendChild(script)
+
+  script.onload = () => {
+    // Inicializar Mercado Pago cuando el script está cargado
+    if (window.MercadoPago) {
+      const mp = new window.MercadoPago(mercadoPagoPublicKey, {
+        locale: 'es-AR'
+      })
+      window.mp = mp
+      console.log('Mercado Pago SDK inicializado correctamente');
+    }
+  }
+
+  // Verificar si hay algún pago pendiente de verificar (por si el usuario regresa después de pagar)
+  const checkPendingPayment = async () => {
+    const transactionData = localStorage.getItem('mp_transaction_data')
+
+    if (transactionData) {
+      try {
+        const { id, timestamp, codCredito: storedCodCredito, nroCuota } = JSON.parse(transactionData)
+
+        // Solo verificar pagos recientes (menos de 30 minutos) y del mismo crédito
+        const isRecent = (Date.now() - timestamp) < (30 * 60 * 1000)
+        const isSameCredit = storedCodCredito === codCredito.value
+
+        if (isRecent && isSameCredit) {
+          console.log('Verificando pago pendiente:', id)
+
+          // Verificar el estado del pago consultando al backend
+          try {
+            const response = await axios.get(`http://localhost:3000/api/mercado-pago/verificar-pago/${id}`)
+
+            if (response.data && response.data.status === 'approved') {
+              // Notificar al backend y actualizar la UI
+              await mercadoPagoService.confirmarPago(storedCodCredito, nroCuota, id)
+              alert('¡Pago verificado con éxito!')
+
+              // Actualizar los datos del crédito para reflejar el pago
+              // Si hay un método refetch disponible en el composable
+              if (typeof credito.value?.refetch === 'function') {
+                await credito.value.refetch()
+              }
+            }
+          } catch (error) {
+            console.error('Error al verificar pago pendiente:', error)
+          } finally {
+            // Limpiar el storage para no volver a verificar
+            localStorage.removeItem('mp_transaction_data')
+          }
+        } else {
+          // Si el pago es antiguo o de otro crédito, limpiar
+          localStorage.removeItem('mp_transaction_data')
+        }
+      } catch (error) {
+        console.error('Error al procesar datos de transacción guardados:', error)
+        localStorage.removeItem('mp_transaction_data')
+      }
+    }
+  }
+
+  // Verificar pagos pendientes después de que se carga la página
+  setTimeout(checkPendingPayment, 1000)
+  
+  // Registrar los datos del crédito cuando esté disponible
+  setTimeout(() => {
+    console.log('Estado después de timeout:')
+    console.log('isLoading:', isLoading.value)
+    console.log('credito:', credito.value)
+    console.log('error:', error.value)
+  }, 2000)
+})
+
+onUnmounted(() => {
+  // Eliminar el script al desmontar el componente
+  const script = document.querySelector('script[src="https://sdk.mercadopago.com/js/v2"]')
+  if (script) {
+    document.body.removeChild(script)
+  }
+})
+
+const pages = [
+  {
+    name: 'Inicio',
+    href: '/',
+    current: false,
+  },
+  {
+    name: 'Créditos',
+    href: '/creditos',
+    current: false,
+  },
+  {
+    name: `Crédito #${codCredito.value}`,
+    href: `/creditos/${codCredito.value}`,
+    current: true,
+  },
+]
+
+// Utilizar el composable para obtener los datos del crédito
+const { credito, isLoading, error } = useClienteCreditoRecProvDetalle(codReciboPr.value)
+
+// Mostrar los valores que trae el composable en la consola de manera más detallada
+console.log('==================== DEBUG INFO ====================')
+console.log('codReciboPr:', codReciboPr.value)
+console.log('codCredito:', codCredito.value)
+console.log('isLoading:', isLoading.value)
+console.log('error:', error.value)
+console.log('credito recibido:', credito.value)
+console.log('==================== END DEBUG ====================')
+
+// Extender la interfaz Window para incluir MercadoPago
+declare global {
+  interface Window {
+    MercadoPago: new (publicKey: string, options?: Record<string, unknown>) => unknown;
+    mp: unknown;
+  }
+}
+
+// Manejar el pago de una cuota simple (para ClienteCreditoRecProvDetalle)
+const realizarPagoSimple = async (cuota: ClienteCreditoRecProvDetalle) => {
+  try {
+    // Establecer que estamos procesando la cuota
+    processingCuota.value = cuota.nroCuota
+    console.log('Iniciando pago con Mercado Pago para la cuota:', cuota.nroCuota)
+    
+    // Calcular el monto total a pagar
+    const montoTotal = cuota.montoCuo + cuota.intPunit
+    
+    // 1. Llamada a la API del backend para generar el link de pago utilizando el servicio
+    // Usamos el método pagoSimple o el método estándar dependiendo de la implementación
+    const preferenceData = await mercadoPagoService.pagoSimple(montoTotal)
+    
+    if (preferenceData && preferenceData.init_point) {
+      console.log('Preferencia de pago creada:', preferenceData)
+
+      // 2. Determinar qué URL utilizar según el entorno
+      const checkoutUrl = isDevelopment
+        ? preferenceData.sandbox_init_point
+        : preferenceData.init_point
+
+      // 3. Abrir la ventana de pago
+      window.open(checkoutUrl, '_blank')
+    } else {
+      throw new Error('No se recibió una respuesta válida del servicio de pagos')
+    }
+  } catch (error) {
+    console.error('Error al iniciar el pago con Mercado Pago:', error)
+    alert('Ha ocurrido un error al intentar procesar el pago. Por favor, intente nuevamente.')
+  } finally {
+    // Restablecer el estado de procesamiento
+    processingCuota.value = null
+  }
+}
+</script>

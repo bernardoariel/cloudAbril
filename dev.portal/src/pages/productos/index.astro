@@ -1,0 +1,66 @@
+﻿---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { categories } from '../../data/categories';
+import { products } from '../../data/products';
+
+const url = Astro.url;
+const selectedCategory = url.searchParams.get('categoria') ?? 'todos';
+const filteredProducts = selectedCategory === 'todos'
+  ? products
+  : products.filter((product) => product.category === selectedCategory);
+---
+<BaseLayout title="Productos | Abril Amoblamientos" description="Listado completo de productos Abril Amoblamientos.">
+  <section class="bg-[color:var(--surface)] pb-16 pt-10">
+    <div class="mx-auto w-full max-w-6xl px-4">
+      <div class="flex flex-col gap-6 rounded-4xl bg-[color:var(--surface)] p-8 shadow-2xl shadow-[rgba(20,0,44,0.08)]">
+        <div class="flex flex-col gap-2">
+          <p class="text-xs font-semibold uppercase tracking-[0.4em] text-[color:var(--accent)]">Catalogo completo</p>
+          <h1 class="text-3xl font-semibold text-[color:var(--text)]">Productos Abril Amoblamientos</h1>
+          <p class="text-sm text-[color:var(--text-muted)]">
+            Explora nuestras lineas modulares y crea combinaciones a medida. Selecciona una categoria para filtrar el listado.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a
+            href="/productos"
+            class={`button-ring rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide ${selectedCategory === 'todos' ? 'bg-[color:var(--brand)] text-white' : 'border-[color:var(--surface-muted)] bg-[color:var(--surface)] text-[color:var(--brand)] hover:bg-[color:var(--surface-muted)]'}`}
+          >
+            Todas las categorias
+          </a>
+          {categories.map((category) => {
+            const isActive = selectedCategory === category.id;
+            return (
+              <a
+                href={`/productos?categoria=${category.id}`}
+                class={`button-ring rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide ${
+                  isActive
+                    ? 'bg-[color:var(--brand)] text-white'
+                    : 'border-[color:var(--surface-muted)] bg-[color:var(--surface)] text-[color:var(--brand)] hover:bg-[color:var(--surface-muted)]'
+                }`}
+              >
+                {category.name}
+              </a>
+            );
+          })}
+        </div>
+        <div class="rounded-3xl border border-[color:var(--surface-muted)] bg-[color:var(--background)] p-6">
+          <p class="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--text-muted)]">
+            {selectedCategory === 'todos' ? 'Mostrando todos los productos' : `Categoria: ${selectedCategory}`}
+          </p>
+          <div class="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {filteredProducts.map((product) => (
+              <ProductCard product={product} />
+            ))}
+          </div>
+          {filteredProducts.length === 0 ? (
+            <div class="flex flex-col items-center gap-3 py-12 text-center text-sm text-[color:var(--text-muted)]">
+              <p>No encontramos productos en esta categoria por ahora.</p>
+              <a class="text-[color:var(--brand)]" href="/productos">Volver al catalogo completo</a>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

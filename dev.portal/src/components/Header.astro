@@ -1,0 +1,111 @@
+﻿---
+const links = [
+  { href: '/', label: 'Inicio' },
+  { href: '/productos', label: 'Productos' },
+  { href: '#ofertas', label: 'Ofertas' },
+  { href: '/ingresar', label: 'Ingresar' }
+];
+
+const themeOptions = [
+  { value: 'actual', label: 'Paleta Actual' },
+  { value: 'otono', label: 'Paleta Otono' },
+  { value: 'invierno', label: 'Paleta Invierno' },
+  { value: 'primavera', label: 'Paleta Primavera' }
+];
+
+const selectId = 'theme-selector';
+const mobileSelectId = `${selectId}-mobile`;
+---
+<header class="sticky top-0 z-40 bg-[color:var(--surface)]/95 backdrop-blur shadow-sm">
+  <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
+    <a class="flex items-center gap-3" href="/">
+      <span class="flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--brand)] text-base font-semibold text-white shadow-lg">AA</span>
+      <div class="hidden text-left sm:block">
+        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-[color:var(--accent)]">Abril</p>
+        <p class="text-lg font-semibold text-[color:var(--text)]">Amoblamientos</p>
+      </div>
+    </a>
+
+    <nav class="hidden items-center gap-8 text-sm font-medium text-[color:var(--text-muted)] md:flex">
+      {links.map((link) => (
+        <a href={link.href} class="transition-colors hover:text-[color:var(--brand)]">{link.label}</a>
+      ))}
+      <div class="flex items-center gap-2">
+        <label class="text-xs uppercase tracking-wide text-[color:var(--text-muted)]" for={selectId}>Tema</label>
+        <select
+          id={selectId}
+          class="rounded-full border border-[color:var(--surface-muted)] bg-[color:var(--surface)] px-3 py-1 text-xs font-medium text-[color:var(--text)] shadow-sm"
+        >
+          {themeOptions.map((option) => (
+            <option value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </div>
+      <a
+        class="button-ring rounded-full bg-[color:var(--brand)] px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-[color:var(--accent)]"
+        href="/ingresar"
+      >
+        IR AL PORTAL
+      </a>
+    </nav>
+
+    <details class="relative md:hidden">
+      <summary class="button-ring flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-[color:var(--surface-muted)] bg-[color:var(--surface)] text-[color:var(--brand)] shadow-sm">
+        <span class="sr-only">Menu</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7h16M4 12h16M4 17h16" /></svg>
+      </summary>
+      <div class="absolute right-0 mt-3 flex w-56 flex-col gap-2 rounded-2xl border border-[color:var(--surface-muted)] bg-[color:var(--surface)] p-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase text-[color:var(--text-muted)]">Tema</span>
+          <select
+            id={mobileSelectId}
+            class="rounded-full border border-[color:var(--surface-muted)] bg-[color:var(--surface)] px-3 py-1 text-xs font-medium text-[color:var(--text)] shadow-sm"
+          >
+            {themeOptions.map((option) => (
+              <option value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+        {links.map((link) => (
+          <a class="rounded-xl px-3 py-2 text-sm font-medium text-[color:var(--text-muted)] transition hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--brand)]" href={link.href}>
+            {link.label}
+          </a>
+        ))}
+        <a
+          class="button-ring mt-2 rounded-full bg-[color:var(--brand)] px-4 py-2 text-center text-sm font-semibold text-white shadow-lg transition hover:bg-[color:var(--accent)]"
+          href="/ingresar"
+        >
+          IR AL PORTAL
+        </a>
+      </div>
+    </details>
+  </div>
+</header>
+
+<script is:inline define:vars={{ selectId, mobileSelectId, themeOptions }}>
+  import { applyTheme, loadTheme } from '../lib/theme';
+
+  const desktopSelect = document.getElementById(selectId) as HTMLSelectElement | null;
+  const mobileSelect = document.getElementById(mobileSelectId) as HTMLSelectElement | null;
+
+  const currentTheme = loadTheme();
+
+  const syncSelect = (select: HTMLSelectElement | null, theme: string) => {
+    if (!select) return;
+    const hasTheme = themeOptions.some((option) => option.value === theme);
+    select.value = hasTheme ? theme : 'actual';
+  };
+
+  syncSelect(desktopSelect, currentTheme);
+  syncSelect(mobileSelect, currentTheme);
+
+  const handleChange = (event: Event) => {
+    const value = (event.target as HTMLSelectElement).value;
+    applyTheme(value);
+    syncSelect(desktopSelect, value);
+    syncSelect(mobileSelect, value);
+  };
+
+  desktopSelect?.addEventListener('change', handleChange);
+  mobileSelect?.addEventListener('change', handleChange);
+</script>

@@ -1,0 +1,32 @@
+﻿---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Ingresar | Abril Amoblamientos" description="Portal de clientes Abril Amoblamientos.">
+  <section class="flex min-h-[60vh] items-center bg-[color:var(--surface)] py-16">
+    <div class="mx-auto flex w-full max-w-4xl flex-col gap-8 rounded-4xl bg-[color:var(--surface)] px-6 py-12 text-center shadow-2xl sm:px-12">
+      <div class="space-y-3">
+        <p class="text-xs font-semibold uppercase tracking-[0.4em] text-[color:var(--accent)]">Portal Retailers</p>
+        <h1 class="text-3xl font-semibold text-[color:var(--text)]">Ingresar al panel Abril</h1>
+        <p class="text-sm text-[color:var(--text-muted)]">
+          Accede al seguimiento de pedidos, listas de precios actualizadas y lanzamientos exclusivos para distribuidores y partners de Abril Amoblamientos.
+        </p>
+      </div>
+      <div class="flex flex-col items-center gap-3">
+        <a
+          class="button-ring inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--brand)] px-8 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-lg hover:bg-[color:var(--accent)]"
+          href="https://portal.abrilamoblamientos.com.ar"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Ir al portal seguro
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </a>
+        <p class="text-xs text-[color:var(--text-muted)]">
+          Necesitas usuario? Escribinos a <a class="font-semibold text-[color:var(--brand)]" href="mailto:hola@abrilamoblamientos.com.ar">hola@abrilamoblamientos.com.ar</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

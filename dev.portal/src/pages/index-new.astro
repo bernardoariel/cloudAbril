@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import Sheet from '../components/Sheet.astro';
+import ProductsGrid from '../components/ProductsGrid.astro';
+import { products } from '../data/products';
+import { offers } from '../data/offers';
+import { setTheme, ThemeType } from '../lib/theme';
+
+// ejemplo: fijar tema por código (sin UI)
+if (typeof window !== 'undefined') {
+  setTheme(ThemeType.Old); // cambiá por el que quieras
+}
+---
+<BaseLayout title="Abril Amoblamientos">
+  <Hero src="/hero-2193x827.jpg" alt="Abril Amoblamientos" />
+  
+  <Sheet>
+    <!-- Bienvenida -->
+    <div class="text-center mb-8">
+      <h2 class="text-2xl font-bold text-[var(--brand)] mb-2">Bienvenido</h2>
+      <p class="text-gray-600">Elegí por categoría o mirá las ofertas del mes.</p>
+    </div>
+
+    <!-- Ofertas -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800">Ofertas del mes</h3>
+      <div class="grid gap-3 sm:grid-cols-2">
+        {offers.map((o) => (
+          <div class="bg-[var(--brand)] text-white rounded-lg p-4 text-center">
+            <span class="font-semibold">{o}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Productos -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800">Destacados</h3>
+      <ProductsGrid items={products} />
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center pt-6 border-t border-gray-100">
+      <p class="text-gray-600 mb-4">¿Sos cliente mayorista?</p>
+      <a 
+        href="/ingresar" 
+        class="inline-block bg-[var(--brand)] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[var(--accent)] transition-colors"
+      >
+        Ingresar al Portal
+      </a>
+    </div>
+  </Sheet>
+
+  <footer class="mt-12 py-8 text-center text-sm text-gray-500">
+    <div>abrilamoblamientos.com.ar • Vive en vos</div>
+  </footer>
+</BaseLayout>

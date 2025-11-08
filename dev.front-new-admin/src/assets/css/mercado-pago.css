@@ -1,0 +1,74 @@
+/* Estilos para el botón de Mercado Pago */
+.mercadopago-button {
+  padding: 10px 15px !important;
+  border-radius: 6px !important;
+  background-color: #009ee3 !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border: none !important;
+  transition: all 0.2s ease-in-out !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+.mercadopago-button:hover {
+  background-color: #008dcb !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.mercadopago-button:active {
+  transform: translateY(1px) !important;
+}
+
+/* Estilos personalizados para nuestro botón */
+button[class*="mp-button-container"] {
+  background-color: #009ee3 !important;
+  border-radius: 5px !important;
+  color: white !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 10px 15px !important;
+  cursor: pointer !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+  text-decoration: none !important;
+}
+
+button[class*="mp-button-container"]:hover {
+  background-color: #008ecf !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+button[class*="mp-button-container"]:active {
+  transform: translateY(1px) !important;
+}
+
+/* Estilos para la página de Mercado Pago que se abrirá en una ventana nueva */
+.mercadopago-external-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  background-color: #009ee3;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.mercadopago-external-link:hover {
+  background-color: #007cb4;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Ícono para indicar ventana externa */
+.mercadopago-external-link:after {
+  content: '↗';
+  margin-left: 6px;
+  font-size: 14px;
+}
