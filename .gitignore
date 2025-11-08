@@ -60,6 +60,8 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
 
 # Runtime data
 pids/
@@ -82,6 +84,7 @@ dist/
 build/
 .next/
 out/
+.astro/
 
 # Don't ignore existing dist files already committed
 !**/dist/
