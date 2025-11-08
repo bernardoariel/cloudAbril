@@ -68,11 +68,14 @@ node_modules/
 # Optional npm cache directory
 .npm
 
-# Build outputs
+# Build outputs (exclude dist/ for future commits)
 dist/
 build/
 .next/
 out/
+
+# Don't ignore existing dist files already committed
+!**/dist/
 
 # Temporary folders
 tmp/
