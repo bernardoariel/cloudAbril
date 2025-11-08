@@ -7,4 +7,83 @@ front-admin/
 front-precios/
 portal/
 ws/
+
+# SSL certificates and acme.sh data
+nginx/acme.sh/
+
+# Environment variables and sensitive config files
 .env
+.env.local
+.env.production
+.env.development
+*.env
+
+# Firebase config files with sensitive data
+firebase-config.ts
+firebase-admin.config.ts
+**/firebase-config.ts
+**/firebase-admin.config.ts
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Config files that might contain secrets
+config/database.json
+config/production.json
+config/secrets.json
+**/config/database.json
+**/config/production.json
+**/config/secrets.json
+
+# SSH keys and certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Docker secrets
+docker-compose.override.yml
+docker-compose.prod.yml
+
+# IDE and editor files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output/
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Temporary folders
+tmp/
+temp/
