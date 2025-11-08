@@ -1,3 +1,12 @@
+# Exclude non-development directories (keep only dev.* directories)
+backend/
+client.abril/
+front-admin/
+front-precios/
+nginx/
+portal/
+ws/
+
 # SSL certificates and acme.sh data
 nginx/acme.sh/
 
