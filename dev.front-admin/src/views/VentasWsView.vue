@@ -430,14 +430,14 @@ async function sendWhatsApp() {
       const filas = detalle.value.detalles
         .filter((d: any) => d.CodProducto >= 1000)
         .map((d: any) => `${d.Cantidad} - ${d.NombreProducto}`);
-      productosLista = filas.join('\n');
+      productosLista = filas.join(',');
     }
 
     let metodosLista = '';
     if (metodosPago.value?.length) {
       metodosLista = metodosPago.value
         .map((m: any) => `${m.CodForPago} $${Number(m.Importe ?? 0).toLocaleString('es-AR')}`)
-        .join('\n');
+        .join(',');
     }
 
     // 4) Armar DTO para /ws/compra (aviso_compra_abril)
@@ -453,7 +453,7 @@ async function sendWhatsApp() {
 
 
     // 5) Llamada a tu backend
-    await whatsappService.post('/whatsapp/aviso_compra_abril', payload); // usa tu wrapper/axios
+    await whatsappService.sendAvisoCompra(payload); // usa tu wrapper/axios
 
     whatsAppMessage.value = `WhatsApp enviado a ${v.Nombre} (${telefono})`;
     setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ''; }, 1500);
