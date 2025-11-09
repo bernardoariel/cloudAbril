@@ -122,8 +122,8 @@
           <p><strong>Registros seleccionados:</strong> {{ seleccionablesSeleccionados }}</p>
           <p><strong>Se enviará al primer registro con teléfono válido</strong></p>
           <p class="text-xs text-gray-600 mt-2">
-            Template: aviso_pago<br>
-            Endpoint: http://localhost:3010/whatsapp/template/aviso_pago
+            Template: aviso_pago_abril<br>
+            Endpoint: http://localhost:3010/whatsapp/aviso_pago_abril
           </p>
         </div>
       </div>
@@ -156,8 +156,8 @@ import WhatsAppTabs from '@/components/WhatsAppTabs.vue';
 import { usePagos } from '../composables/usePagos';
 import type { Recibo } from '../interfaces/Recibo';
 import { useSucursales } from '@/modules/sqlserver/sucursales/composable/useSucursales';
-import { WhatsappService } from '../services/whatsappService';
-
+import { whatsappService } from '../services/whatsappService';
+import type { AvisoPagoPayload } from '../services/whatsappService';
 
 const {
   isLoading,
@@ -272,6 +272,7 @@ async function sendWhatsApp() {
   try {
     isSendingWhatsApp.value = true;
 
+    // 1) Filtrar selección con teléfono válido
     const recibosSeleccionados = recibosFiltradosPorSucursal.value.filter((item: any) => {
       const telefono = item.Telefonos || item.telefonos;
       const digitsOnly = telefono ? telefono.replace(/\D/g, '') : '';
@@ -284,70 +285,42 @@ async function sendWhatsApp() {
       return;
     }
 
-    const primerRecibo = recibosSeleccionados[0];
+    const r = recibosSeleccionados[0];
 
-    let telefono = (primerRecibo.telefonos || primerRecibo.Telefonos || '').replace(/\D/g, '');
-    if (telefono.length === 10) {
-      telefono = '54' + telefono;
-    }
+    // 2) Normalizar teléfono
+    let telefono = (r.Telefonos || r.telefonos || '').replace(/\D/g, '');
+    if (telefono.length === 10) telefono = '54' + telefono;
 
-    const telefonoPrueba = '543704299434';
-    telefono = telefonoPrueba;
+    // DEV: forzar número de prueba
+    telefono = '543704299434';
 
-    const sucursal = sucursales.value.find(s => s.CodSucursal === primerRecibo.codSucRecibo);
-    const nombreSucursal = sucursal ? sucursal.NombreSuc : 'Sucursal';
+    // 3) Obtener datos de sucursal
+    const sucursal = sucursales.value.find(s => s.CodSucursal === (r.codSucRecibo || r.CodSucRecibo));
+    const nombreSucursal = sucursal ? sucursal.NombreSuc : 'SUCURSAL';
 
-    const nroOperacion = primerRecibo.codCredito || primerRecibo.CodCredito || '';
-    const nroRecibo = primerRecibo.CodReciboPr ?? primerRecibo.codReciboPr ?? '';
-    const fecha = new Date(primerRecibo.Fecha).toLocaleDateString('es-AR');
-    const importe = primerRecibo.MontoPagado || primerRecibo.montoPagado;
-
-    const whatsAppData = {
-      messaging_product: "whatsapp",
+    // 4) Armar DTO para /whatsapp/aviso_pago_abril
+    const payload: AvisoPagoPayload = {
       to: telefono,
-      type: "template",
-      template: {
-        name: "aviso_pago",
-        language: {
-          code: "es_AR"
-        },
-        components: [
-          {
-            type: "body",
-            parameters: [
-              { type: "text", parameter_name: "nombre", text: primerRecibo.NombreCont },
-              { type: "text", parameter_name: "documento", text: (primerRecibo.NroDoc || '').toString() },
-              { type: "text", parameter_name: "nombre_sucursal", text: nombreSucursal },
-              { type: "text", parameter_name: "nro_operacion", text: nroOperacion.toString() },
-              { type: "text", parameter_name: "importe", text: importe.toString() },
-              { type: "text", parameter_name: "nro_recibo", text: nroRecibo.toString() },
-              { type: "text", parameter_name: "fecha", text: fecha }
-            ]
-          }
-        ]
-      }
+      nombre: r.NombreCont || r.nombreCont || '',
+      nro_operacion: String(r.codCredito || r.CodCredito || ''),
+      nro_recibo: String(r.CodReciboPr || r.codReciboPr || ''),
+      fecha: new Date(r.Fecha).toLocaleDateString('es-AR'),
+      documento: String(r.NroDoc || r.nroDoc || ''),
+      nombre_sucursal: nombreSucursal,
+      importe: `$${Number(r.MontoPagado || r.montoPagado || 0).toLocaleString('es-AR')}`
     };
 
-    console.log('Datos enviados a WhatsApp:', JSON.stringify(whatsAppData, null, 2));
+    // 5) Llamada al backend
+    await whatsappService.sendAvisoPago(payload);
 
-    const result = await whatsappService.sendAvisoPago(whatsAppData);
-    console.log('Respuesta de WhatsApp:', result);
-    whatsAppMessage.value = `WhatsApp enviado exitosamente a ${primerRecibo.NombreCont} (${telefono})`;
-
-    setTimeout(() => {
-      closeWhatsModal();
-      whatsAppMessage.value = '';
-    }, 2000);
-
-  } catch (error) {
-    console.error('Error enviando WhatsApp:', error);
-
-    let errorMessage = 'Error desconocido';
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-
-    whatsAppMessage.value = `Error enviando WhatsApp: ${errorMessage}`;
+    whatsAppMessage.value = `WhatsApp enviado a ${r.NombreCont || r.nombreCont} (${telefono})`;
+    setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ''; }, 1500);
+  } catch (err: any) {
+    console.error('Error enviando WhatsApp:', err);
+    const msg = err?.response?.data?.error?.message
+      || err?.message
+      || 'Error desconocido';
+    whatsAppMessage.value = `Error enviando WhatsApp: ${msg}`;
   } finally {
     isSendingWhatsApp.value = false;
   }
