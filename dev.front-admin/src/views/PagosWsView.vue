@@ -100,8 +100,9 @@
         </div>
       </div>
       <!-- Columna del Detalle (ocupa 1 de 3 columnas en LG) -->
-      <div class="lg:col-span-1">
+      <div class="lg:col-span-1 space-y-4">
         <ReciboDetailCard :recibo="selectedRecibo" />
+        <WhatsAppHistoryPanel />
       </div>
     </div>
   </div>
@@ -121,6 +122,12 @@
         <div class="bg-base-200 p-3 rounded text-sm">
           <p><strong>Registros seleccionados:</strong> {{ seleccionablesSeleccionados }}</p>
           <p><strong>Se enviará al primer registro con teléfono válido</strong></p>
+          <div class="mt-2">
+            <label class="label cursor-pointer justify-start">
+              <input type="checkbox" v-model="forzarReenvio" class="checkbox checkbox-sm mr-2" />
+              <span class="label-text text-sm">🔄 Forzar reenvío (omitir control de duplicados)</span>
+            </label>
+          </div>
           <p class="text-xs text-gray-600 mt-2">
             Template: aviso_pago_abril<br>
             Endpoint: http://localhost:3010/whatsapp/aviso_pago_abril
@@ -153,9 +160,11 @@ import DataTable from '@/components/DataTable.vue';
 import PaginationControl from '@/components/PaginationControl.vue';
 import ReciboDetailCard from '@/components/ReciboDetailCard.vue';
 import WhatsAppTabs from '@/components/WhatsAppTabs.vue';
+import WhatsAppHistoryPanel from '@/components/WhatsAppHistoryPanel.vue';
 import { usePagos } from '../composables/usePagos';
 import type { Recibo } from '../interfaces/Recibo';
 import { useSucursales } from '@/modules/sqlserver/sucursales/composable/useSucursales';
+import { useWhatsAppHistory } from '@/composables/useWhatsAppHistory';
 import { whatsappService } from '../services/whatsappService';
 import type { AvisoPagoPayload } from '../services/whatsappService';
 import { normalizePhone } from '../common/helpers/normalizePhone';
@@ -181,6 +190,7 @@ const {
 } = usePagos();
 
 const { sucursales, isLoading: loadingSucursales } = useSucursales();
+const { yaFueEnviado, agregarMensaje } = useWhatsAppHistory();
 const sucursalesSeleccionadas = ref<number[]>([]);
 
 // Buscador de sucursales
@@ -265,6 +275,7 @@ const seleccionablesSeleccionados = computed(() => {
 const isWhatsModalOpen = ref(false)
 const isSendingWhatsApp = ref(false)
 const whatsAppMessage = ref('')
+const forzarReenvio = ref(false)
 
 function openWhatsModal() { isWhatsModalOpen.value = true }
 function closeWhatsModal() { isWhatsModalOpen.value = false }
@@ -290,12 +301,21 @@ async function sendWhatsApp() {
 
     const ok: string[] = [];
     const fail: { nombre: string; motivo: string }[] = [];
+    const omitidos: string[] = [];
 
     // 2) Enviar uno por uno
     for (const r of recibosSeleccionados) {
       try {
         let telefono = normalizePhone(r.Telefonos || r.telefonos || "");
         if (!telefono) throw new Error("Teléfono inválido");
+
+        // 🔍 Verificar si ya fue enviado (solo si no se fuerza reenvío)
+        const nroRecibo = String(r.CodReciboPr || r.codReciboPr || "");
+        const mensajeExistente = yaFueEnviado('aviso_pago', telefono, nroRecibo);
+        if (mensajeExistente && !forzarReenvio.value) {
+          omitidos.push(`${r.NombreCont || r.nombreCont} (ya enviado)`);
+          continue;
+        }
 
         // Buscar sucursal
         const sucursal = sucursales.value.find(
@@ -314,7 +334,17 @@ async function sendWhatsApp() {
           importe: `$${Number(r.MontoPagado || r.montoPagado || 0).toLocaleString("es-AR")}`,
         };
 
-        await whatsappService.sendAvisoPago(payload);
+        const response = await whatsappService.sendAvisoPago(payload);
+        
+        // 📱 Guardar en historial
+        agregarMensaje({
+          tipo: 'aviso_pago',
+          telefono: telefono,
+          nombre: r.NombreCont || r.nombreCont || "",
+          nro_recibo: nroRecibo,
+          response: response
+        });
+
         ok.push(`${r.NombreCont || r.nombreCont} (${telefono})`);
         await sleep(350);
       } catch (e: any) {
@@ -325,11 +355,15 @@ async function sendWhatsApp() {
     const total = recibosSeleccionados.length;
     const enviados = ok.length;
     const errores = fail.length;
+    const saltados = omitidos.length;
 
     whatsAppMessage.value =
-      `Enviados ${enviados}/${total}.` +
-      (ok.length ? ` OK: ${ok.join(" | ")}.` : "") +
-      (fail.length ? ` Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
+      `Enviados ${enviados}/${total}` +
+      (saltados ? ` (${saltados} omitidos)` : "") + 
+      "." +
+      (ok.length ? ` ✅ OK: ${ok.join(" | ")}.` : "") +
+      (omitidos.length ? ` ⏭️ Omitidos: ${omitidos.join(" | ")}.` : "") +
+      (fail.length ? ` ❌ Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
 
     if (errores === 0) {
       setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ""; }, 1500);

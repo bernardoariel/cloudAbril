@@ -176,7 +176,7 @@
         </div>
       </div>
       <!-- Columna del Detalle (ocupa 1 de 3 columnas en LG) -->
-      <div class="lg:col-span-1">
+      <div class="lg:col-span-1 space-y-4">
         <VentaDetailCard
           :venta="selectedVenta"
           :detalleFactura="detalle"
@@ -184,6 +184,7 @@
           :errorDetalle="errorDetalle"
           :metodosPago="metodosPago"
         />
+        <WhatsAppHistoryPanel />
       </div>
     </div>
   </div>
@@ -209,6 +210,12 @@
             <strong>Registros seleccionados:</strong> {{ seleccionablesSeleccionados }}
           </p>
           <p><strong>Se enviará al primer registro con teléfono válido</strong></p>
+          <div class="mt-2">
+            <label class="label cursor-pointer justify-start">
+              <input type="checkbox" v-model="forzarReenvio" class="checkbox checkbox-sm mr-2" />
+              <span class="label-text text-sm">🔄 Forzar reenvío (omitir control de duplicados)</span>
+            </label>
+          </div>
           <p class="text-xs text-gray-600 mt-2">
             Template: aviso_compra<br />
             Endpoint: http://localhost:3010/whatsapp/template/aviso_compra_abril
@@ -253,10 +260,12 @@ import DataTable from "@/components/DataTable.vue";
 import PaginationControl from "@/components/PaginationControl.vue";
 import VentaDetailCard from "@/components/VentaDetailCard.vue";
 import WhatsAppTabs from "@/components/WhatsAppTabs.vue";
+import WhatsAppHistoryPanel from "@/components/WhatsAppHistoryPanel.vue";
 import { useVentas } from "../composables/useVentas";
 import type { Venta } from "../interfaces/Venta";
 import { useDetalleFactura } from "@/composables/useDetalleFactura";
 import { useSucursales } from "@/modules/sqlserver/sucursales/composable/useSucursales";
+import { useWhatsAppHistory } from "@/composables/useWhatsAppHistory";
 import { whatsappService } from '../services/whatsappService';
 import { normalizePhone } from '../common/helpers/normalizePhone';
 import { sleep } from '../common/helpers/sleep';
@@ -291,6 +300,7 @@ const {
 } = useDetalleFactura();
 
 const { sucursales, isLoading: loadingSucursales } = useSucursales();
+const { yaFueEnviado, agregarMensaje } = useWhatsAppHistory();
 const sucursalesSeleccionadas = ref<number[]>([]);
 
 // Buscador de sucursales
@@ -384,6 +394,7 @@ const seleccionablesSeleccionados = computed(() => {
 const isWhatsModalOpen = ref(false);
 const isSendingWhatsApp = ref(false);
 const whatsAppMessage = ref("");
+const forzarReenvio = ref(false);
 
 function openWhatsModal() {
   isWhatsModalOpen.value = true;
@@ -418,11 +429,19 @@ async function sendWhatsApp() {
 
     const ok: string[] = [];
     const fail: { nombre: string; motivo: string }[] = [];
+    const omitidos: string[] = [];
 
     for (const v of ventasSeleccionadas) {
       try {
         const telefono = normalizePhone(v.Telefonos ?? "");
         if (!telefono) throw new Error("Teléfono inválido");
+
+        // 🔍 Verificar si ya fue enviado (solo si no se fuerza reenvío)
+        const mensajeExistente = yaFueEnviado('aviso_compra', telefono, String(v.venta_CodVenta));
+        if (mensajeExistente && !forzarReenvio.value) {
+          omitidos.push(`${v.Nombre} (ya enviado)`);
+          continue;
+        }
 
         await fetchDetalle(v.venta_CodVenta);
 
@@ -451,7 +470,17 @@ async function sendWhatsApp() {
           pago_list: metodosLista,
         };
 
-        await whatsappService.sendAvisoCompra(payload);
+        const response = await whatsappService.sendAvisoCompra(payload);
+        
+        // 📱 Guardar en historial
+        agregarMensaje({
+          tipo: 'aviso_compra',
+          telefono: telefono,
+          nombre: v.Nombre,
+          cod_venta: String(v.venta_CodVenta),
+          response: response
+        });
+
         ok.push(`${v.Nombre} (${telefono})`);
         await sleep(350);
       } catch (e: any) {
@@ -462,11 +491,15 @@ async function sendWhatsApp() {
     const total = ventasSeleccionadas.length;
     const enviados = ok.length;
     const errores = fail.length;
+    const saltados = omitidos.length;
 
     whatsAppMessage.value =
-      `Enviados ${enviados}/${total}.` +
-      (ok.length ? ` OK: ${ok.join(" | ")}.` : "") +
-      (fail.length ? ` Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
+      `Enviados ${enviados}/${total}` +
+      (saltados ? ` (${saltados} omitidos)` : "") + 
+      "." +
+      (ok.length ? ` ✅ OK: ${ok.join(" | ")}.` : "") +
+      (omitidos.length ? ` ⏭️ Omitidos: ${omitidos.join(" | ")}.` : "") +
+      (fail.length ? ` ❌ Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
 
     if (errores === 0) {
       setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ""; }, 1500);
