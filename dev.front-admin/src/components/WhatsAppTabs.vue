@@ -24,7 +24,7 @@
       :checked="route.name === 'pagosWs'"
       @change="go('/pagosws')"
     />
-    <input
+    <!-- <input
       type="radio"
       name="whatsTabs"
       role="tab"
@@ -35,8 +35,8 @@
       "
       :checked="route.name === 'clientesMoraWs'"
       @change="go('/clientesMora')"
-    />
-    <input
+    /> -->
+    <!-- <input
       type="radio"
       name="whatsTabs"
       role="tab"
@@ -49,7 +49,7 @@
       "
       :checked="route.name === 'personalizadoWs'"
       @change="go('/personalizadows')"
-    />
+    /> -->
   </div>
 </template>
 
