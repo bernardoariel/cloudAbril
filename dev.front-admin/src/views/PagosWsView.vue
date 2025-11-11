@@ -158,7 +158,8 @@ import type { Recibo } from '../interfaces/Recibo';
 import { useSucursales } from '@/modules/sqlserver/sucursales/composable/useSucursales';
 import { whatsappService } from '../services/whatsappService';
 import type { AvisoPagoPayload } from '../services/whatsappService';
-
+import { normalizePhone } from '../common/helpers/normalizePhone';
+import { sleep } from '../common/helpers/sleep';
 const {
   isLoading,
   error,
@@ -268,63 +269,78 @@ const whatsAppMessage = ref('')
 function openWhatsModal() { isWhatsModalOpen.value = true }
 function closeWhatsModal() { isWhatsModalOpen.value = false }
 
-async function sendWhatsApp() {
-  try {
-    isSendingWhatsApp.value = true;
 
-    // 1) Filtrar selección con teléfono válido
+async function sendWhatsApp() {
+  isSendingWhatsApp.value = true;
+  whatsAppMessage.value = "";
+
+  try {
+    // 1) Seleccionados con teléfono válido
     const recibosSeleccionados = recibosFiltradosPorSucursal.value.filter((item: any) => {
       const telefono = item.Telefonos || item.telefonos;
-      const digitsOnly = telefono ? telefono.replace(/\D/g, '') : '';
+      const digitsOnly = telefono ? telefono.replace(/\D/g, "") : "";
       const telefonoValido = digitsOnly.length >= 10;
       return telefonoValido && selectedKeys.value.has(item.CodReciboPr ?? item.codReciboPr);
     });
 
     if (recibosSeleccionados.length === 0) {
-      whatsAppMessage.value = 'No hay registros seleccionados con teléfonos válidos';
+      whatsAppMessage.value = "No hay registros seleccionados con teléfonos válidos";
       return;
     }
 
-    const r = recibosSeleccionados[0];
+    const ok: string[] = [];
+    const fail: { nombre: string; motivo: string }[] = [];
 
-    // 2) Normalizar teléfono
-    let telefono = (r.Telefonos || r.telefonos || '').replace(/\D/g, '');
-    if (telefono.length === 10) telefono = '54' + telefono;
+    // 2) Enviar uno por uno
+    for (const r of recibosSeleccionados) {
+      try {
+        let telefono = normalizePhone(r.Telefonos || r.telefonos || "");
+        if (!telefono) throw new Error("Teléfono inválido");
 
-    // DEV: forzar número de prueba
-    telefono = '543704299434';
+        // Buscar sucursal
+        const sucursal = sucursales.value.find(
+          s => s.CodSucursal === (r.codSucRecibo || r.CodSucRecibo)
+        );
+        const nombreSucursal = sucursal ? sucursal.NombreSuc : "SUCURSAL";
 
-    // 3) Obtener datos de sucursal
-    const sucursal = sucursales.value.find(s => s.CodSucursal === (r.codSucRecibo || r.CodSucRecibo));
-    const nombreSucursal = sucursal ? sucursal.NombreSuc : 'SUCURSAL';
+        const payload: AvisoPagoPayload = {
+          to: telefono,
+          nombre: r.NombreCont || r.nombreCont || "",
+          nro_operacion: String(r.codCredito || r.CodCredito || ""),
+          nro_recibo: String(r.CodReciboPr || r.codReciboPr || ""),
+          fecha: new Date(r.Fecha).toLocaleDateString("es-AR"),
+          documento: String(r.NroDoc || r.nroDoc || ""),
+          nombre_sucursal: nombreSucursal,
+          importe: `$${Number(r.MontoPagado || r.montoPagado || 0).toLocaleString("es-AR")}`,
+        };
 
-    // 4) Armar DTO para /whatsapp/aviso_pago_abril
-    const payload: AvisoPagoPayload = {
-      to: telefono,
-      nombre: r.NombreCont || r.nombreCont || '',
-      nro_operacion: String(r.codCredito || r.CodCredito || ''),
-      nro_recibo: String(r.CodReciboPr || r.codReciboPr || ''),
-      fecha: new Date(r.Fecha).toLocaleDateString('es-AR'),
-      documento: String(r.NroDoc || r.nroDoc || ''),
-      nombre_sucursal: nombreSucursal,
-      importe: `$${Number(r.MontoPagado || r.montoPagado || 0).toLocaleString('es-AR')}`
-    };
+        await whatsappService.sendAvisoPago(payload);
+        ok.push(`${r.NombreCont || r.nombreCont} (${telefono})`);
+        await sleep(350);
+      } catch (e: any) {
+        fail.push({ nombre: r.NombreCont || r.nombreCont, motivo: e?.message ?? "Error desconocido" });
+      }
+    }
 
-    // 5) Llamada al backend
-    await whatsappService.sendAvisoPago(payload);
+    const total = recibosSeleccionados.length;
+    const enviados = ok.length;
+    const errores = fail.length;
 
-    whatsAppMessage.value = `WhatsApp enviado a ${r.NombreCont || r.nombreCont} (${telefono})`;
-    setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ''; }, 1500);
+    whatsAppMessage.value =
+      `Enviados ${enviados}/${total}.` +
+      (ok.length ? ` OK: ${ok.join(" | ")}.` : "") +
+      (fail.length ? ` Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
+
+    if (errores === 0) {
+      setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ""; }, 1500);
+    }
   } catch (err: any) {
-    console.error('Error enviando WhatsApp:', err);
-    const msg = err?.response?.data?.error?.message
-      || err?.message
-      || 'Error desconocido';
-    whatsAppMessage.value = `Error enviando WhatsApp: ${msg}`;
+    whatsAppMessage.value = `Error general: ${err?.message ?? "desconocido"}`;
   } finally {
     isSendingWhatsApp.value = false;
   }
 }
+
 </script>
 
 <style>

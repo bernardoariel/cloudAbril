@@ -258,7 +258,8 @@ import type { Venta } from "../interfaces/Venta";
 import { useDetalleFactura } from "@/composables/useDetalleFactura";
 import { useSucursales } from "@/modules/sqlserver/sucursales/composable/useSucursales";
 import { whatsappService } from '../services/whatsappService';
-
+import { normalizePhone } from '../common/helpers/normalizePhone';
+import { sleep } from '../common/helpers/sleep';
 
 
 const {
@@ -399,74 +400,86 @@ type AvisoCompraPayload = {
   product_list: string;
   pago_list: string;
 };
-async function sendWhatsApp() {
-  try {
-    isSendingWhatsApp.value = true;
 
-    // 1) Filtrar selección con teléfono válido
+async function sendWhatsApp() {
+  isSendingWhatsApp.value = true;
+  whatsAppMessage.value = "";
+
+  try {
     const ventasSeleccionadas = ventasFiltradasPorSucursal.value.filter((item: any) => {
-      const digits = (item.Telefonos ?? '').replace(/\D/g, '');
-      return digits.length >= 10 && selectedKeys.value.has(item.venta_CodVenta);
+      const t = (item.Telefonos ?? "").replace(/\D/g, "");
+      return t.length >= 10 && selectedKeys.value.has(item.venta_CodVenta);
     });
+
     if (ventasSeleccionadas.length === 0) {
-      whatsAppMessage.value = 'No hay registros seleccionados con teléfonos válidos';
+      whatsAppMessage.value = "No hay registros seleccionados con teléfonos válidos";
       return;
     }
 
-    const v = ventasSeleccionadas[0];
+    const ok: string[] = [];
+    const fail: { nombre: string; motivo: string }[] = [];
 
-    // 2) Normalizar teléfono
-    let telefono = (v.Telefonos ?? '').replace(/\D/g, '');
-    if (telefono.length === 10) telefono = '54' + telefono;
+    for (const v of ventasSeleccionadas) {
+      try {
+        const telefono = normalizePhone(v.Telefonos ?? "");
+        if (!telefono) throw new Error("Teléfono inválido");
 
-    // DEV: forzá número de prueba
-    telefono = '543704299434';
+        await fetchDetalle(v.venta_CodVenta);
 
-    // 3) Datos auxiliares
-    await fetchDetalle(v.venta_CodVenta);
+        let productosLista = "-";
+        if (detalle.value?.detalles?.length) {
+          productosLista = detalle.value.detalles
+            .filter((d: any) => d.CodProducto >= 1000)
+            .map((d: any) => `${d.Cantidad} - ${d.NombreProducto}`)
+            .join(",");
+        }
 
-    let productosLista = '';
-    if (detalle.value?.detalles?.length) {
-      const filas = detalle.value.detalles
-        .filter((d: any) => d.CodProducto >= 1000)
-        .map((d: any) => `${d.Cantidad} - ${d.NombreProducto}`);
-      productosLista = filas.join(',');
+        let metodosLista = "-";
+        if (metodosPago.value?.length) {
+          metodosLista = metodosPago.value
+            .map((m: any) => `${m.CodForPago} $${Number(m.Importe ?? 0).toLocaleString("es-AR")}`)
+            .join(",");
+        }
+
+        const payload: AvisoCompraPayload = {
+          to: telefono,
+          nombre: v.Nombre,
+          cod_venta: String(v.venta_CodVenta),
+          fecha_compra: new Date(v.venta_Fecha).toLocaleDateString("es-AR"),
+          documento: String(v.NroDoc ?? ""),
+          product_list: productosLista,
+          pago_list: metodosLista,
+        };
+
+        await whatsappService.sendAvisoCompra(payload);
+        ok.push(`${v.Nombre} (${telefono})`);
+        await sleep(350);
+      } catch (e: any) {
+        fail.push({ nombre: v.Nombre, motivo: e?.message ?? "Error desconocido" });
+      }
     }
 
-    let metodosLista = '';
-    if (metodosPago.value?.length) {
-      metodosLista = metodosPago.value
-        .map((m: any) => `${m.CodForPago} $${Number(m.Importe ?? 0).toLocaleString('es-AR')}`)
-        .join(',');
+    const total = ventasSeleccionadas.length;
+    const enviados = ok.length;
+    const errores = fail.length;
+
+    whatsAppMessage.value =
+      `Enviados ${enviados}/${total}.` +
+      (ok.length ? ` OK: ${ok.join(" | ")}.` : "") +
+      (fail.length ? ` Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
+
+    if (errores === 0) {
+      setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ""; }, 1500);
     }
-
-    // 4) Armar DTO para /ws/compra (aviso_compra_abril)
-    const payload: AvisoCompraPayload = {
-      to: telefono,
-      nombre: v.Nombre,
-      cod_venta: String(v.venta_CodVenta),
-      fecha_compra: new Date(v.venta_Fecha).toLocaleDateString('es-AR'),
-      documento: String(v.NroDoc ?? ''),
-      product_list: productosLista || '-',
-      pago_list: metodosLista || '-',
-    };
-
-
-    // 5) Llamada a tu backend
-    await whatsappService.sendAvisoCompra(payload); // usa tu wrapper/axios
-
-    whatsAppMessage.value = `WhatsApp enviado a ${v.Nombre} (${telefono})`;
-    setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ''; }, 1500);
   } catch (err: any) {
-    console.error('Error enviando WhatsApp:', err);
-    const msg = err?.response?.data?.error?.message
-      || err?.message
-      || 'Error desconocido';
-    whatsAppMessage.value = `Error enviando WhatsApp: ${msg}`;
+    whatsAppMessage.value = `Error general: ${err?.message ?? "desconocido"}`;
   } finally {
     isSendingWhatsApp.value = false;
   }
 }
+
+
+
 </script>
 
 <style>
