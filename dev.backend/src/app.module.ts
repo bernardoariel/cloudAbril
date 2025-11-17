@@ -32,6 +32,7 @@ import { ClientesRecpdetModule } from './clientes-recpdet/clientes-recpdet.modul
 import { ClientesRecProvDetModule } from './clientes-recprov-det/clientes-recprov-det.module';
 import { LoginModule } from './login/login.module';
 import { MercadoPagoModule } from './mercado-pago/mercado-pago.module';
+import { WhatsappHistoryModule } from './whatsapp-history/whatsapp-history.module';
 
 
 @Module({
@@ -68,9 +69,8 @@ import { MercadoPagoModule } from './mercado-pago/mercado-pago.module';
         username: configService.get<string>('DB_USERNAME_POSTGRES'),
         password: configService.get<string>('DB_PASSWORD_POSTGRES'),
         database: configService.get<string>('DB_DATABASE_POSTGRES'),
-        entities: [],
-        // entities: [__dirname + '/postgres-entities/**/*.entity{.ts,.js}'],
-        synchronize: false,
+        entities: [__dirname + '/whatsapp-history/**/*.entity{.ts,.js}'],
+        synchronize: true, // Crear tablas automáticamente en desarrollo
       }),
     }),
 
@@ -97,7 +97,8 @@ import { MercadoPagoModule } from './mercado-pago/mercado-pago.module';
     ClientesRecpdetModule,
     ClientesRecProvDetModule,
     LoginModule,
-    MercadoPagoModule
+    MercadoPagoModule,
+    WhatsappHistoryModule
   ],
   controllers: [AppController],
   providers: [AppService],
