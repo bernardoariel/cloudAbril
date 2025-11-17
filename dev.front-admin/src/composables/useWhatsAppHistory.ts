@@ -1,5 +1,7 @@
 // src/composables/useWhatsAppHistory.ts
-import { ref, reactive, computed } from 'vue'
+
+import backendApi from '@/api/abrilbackend'
+import { ref, computed } from 'vue'
 
 export interface WhatsAppMessage {
   id: string
@@ -14,7 +16,7 @@ export interface WhatsAppMessage {
 
 const mensajesEnviados = ref<WhatsAppMessage[]>([])
 
-export function useWhatsAppHistory() {
+export const useWhatsAppHistory =()=>{
   
   // Agregar un mensaje al historial
   const agregarMensaje = (mensaje: Omit<WhatsAppMessage, 'id' | 'fecha_envio'>) => {
@@ -24,7 +26,14 @@ export function useWhatsAppHistory() {
       fecha_envio: new Date()
     }
     mensajesEnviados.value.push(nuevoMensaje)
-    console.log('📱 Mensaje agregado al historial:', nuevoMensaje)
+    // console.log('📱 Mensaje agregado al historial:', nuevoMensaje)
+    backendApi.post('/whatsapp-history', {
+      "tipo": "aviso_pago",
+      "telefono": "37940091122",
+      "nombre": "Lucía Gaamez",
+      "nro_recibo": "R-9922",
+      "message_status": "pending"
+    });
   }
 
   // Verificar si ya se envió un mensaje a un telefono/codigo específico

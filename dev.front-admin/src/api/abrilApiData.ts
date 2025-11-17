@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/useAuth'; // Importar el store
 import { getActivePinia } from 'pinia'; // Importar para verificar si Pinia está activo
 
 const getApiBaseUrl = () => {
+  console.log(import.meta.env.MODE)
   if (import.meta.env.MODE === 'production') {
     return import.meta.env.VITE_API_BASE_URL_PROD;
   }
