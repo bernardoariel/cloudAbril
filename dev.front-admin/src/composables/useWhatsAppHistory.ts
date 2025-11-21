@@ -5,48 +5,64 @@ import { ref, computed } from 'vue'
 
 export interface WhatsAppMessage {
   id: string
-  tipo: 'aviso_compra' | 'aviso_pago'
+  tipo: 'aviso_compra' | 'aviso_pago' | 'reclamo_pago'
   telefono: string
   nombre: string
-  cod_venta?: string
-  nro_recibo?: string
+  source_system: string // 'VENTA' | 'PAGO'
+  source_id: string // CodVenta o NroRecibo
   fecha_envio: Date
-  response: any
+  response?: any
 }
 
 const mensajesEnviados = ref<WhatsAppMessage[]>([])
 
 export const useWhatsAppHistory =()=>{
   
-  // Agregar un mensaje al historial
-  const agregarMensaje = (mensaje: Omit<WhatsAppMessage, 'id' | 'fecha_envio'>) => {
-    const nuevoMensaje: WhatsAppMessage = {
-      ...mensaje,
-      id: `${mensaje.tipo}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      fecha_envio: new Date()
-    }
-    mensajesEnviados.value.push(nuevoMensaje)
-    // console.log('📱 Mensaje agregado al historial:', nuevoMensaje)
-    backendApi.post('/whatsapp-history', {
-      "tipo": "aviso_pago",
-      "telefono": "37940091122",
-      "nombre": "Lucía Gaamez",
-      "nro_recibo": "R-9922",
-      "message_status": "pending"
-    });
-  }
+  // Agregar un mensaje al historial (guardar en BD)
+  const agregarMensaje = async (params: {
+    tipo: 'aviso_compra' | 'aviso_pago' | 'reclamo_pago'
+    sourceSystem: string // 'VENTA' | 'PAGO'
+    sourceId: string // CodVenta o NroRecibo
+    externalClientId: string // IdCliente o DNI
+    nombre: string
+    telefono: string
+    payloadSnapshot?: any // opcional: datos del detalle (productos, montos, etc)
+    response?: any // respuesta del proveedor WhatsApp
+  }) => {
+    try {
+      const response = await backendApi.post('/whatsapp-history/messages', {
+        tipo: params.tipo,
+        sourceSystem: params.sourceSystem,
+        sourceId: params.sourceId,
+        externalClientId: params.externalClientId,
+        nombre: params.nombre,
+        telefono: params.telefono,
+        payloadSnapshot: params.payloadSnapshot
+      })
 
-  // Verificar si ya se envió un mensaje a un telefono/codigo específico
-  const yaFueEnviado = (tipo: 'aviso_compra' | 'aviso_pago', telefono: string, codigo: string): WhatsAppMessage | null => {
-    return mensajesEnviados.value.find(m => 
-      m.tipo === tipo && 
-      m.telefono === telefono && 
-      (m.cod_venta === codigo || m.nro_recibo === codigo)
-    ) || null
+      // Agregar a la lista en memoria para UI
+      const nuevoMensaje: WhatsAppMessage = {
+        id: response.data?.data?.id || `${params.tipo}_${Date.now()}`,
+        tipo: params.tipo,
+        telefono: params.telefono,
+        nombre: params.nombre,
+        source_system: params.sourceSystem,
+        source_id: params.sourceId,
+        fecha_envio: new Date(),
+        response: params.response
+      }
+      mensajesEnviados.value.push(nuevoMensaje)
+      
+      console.log('✅ Mensaje guardado en BD:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('❌ Error al guardar mensaje:', error)
+      throw error
+    }
   }
 
   // Obtener mensajes por tipo
-  const mensajesPorTipo = (tipo: 'aviso_compra' | 'aviso_pago') => {
+  const mensajesPorTipo = (tipo: 'aviso_compra' | 'aviso_pago' | 'reclamo_pago') => {
     return computed(() => mensajesEnviados.value.filter(m => m.tipo === tipo))
   }
 
@@ -79,7 +95,6 @@ export const useWhatsAppHistory =()=>{
     totalMensajes,
     mensajesHoy,
     agregarMensaje,
-    yaFueEnviado,
     mensajesPorTipo,
     limpiarHistorial,
     removerMensaje

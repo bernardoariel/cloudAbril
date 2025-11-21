@@ -210,12 +210,6 @@
             <strong>Registros seleccionados:</strong> {{ seleccionablesSeleccionados }}
           </p>
           <p><strong>Se enviará al primer registro con teléfono válido</strong></p>
-          <div class="mt-2">
-            <label class="label cursor-pointer justify-start">
-              <input type="checkbox" v-model="forzarReenvio" class="checkbox checkbox-sm mr-2" />
-              <span class="label-text text-sm">🔄 Forzar reenvío (omitir control de duplicados)</span>
-            </label>
-          </div>
           <p class="text-xs text-gray-600 mt-2">
             Template: aviso_compra<br />
             Endpoint: http://localhost:3010/whatsapp/template/aviso_compra_abril
@@ -300,7 +294,7 @@ const {
 } = useDetalleFactura();
 
 const { sucursales, isLoading: loadingSucursales } = useSucursales();
-const { yaFueEnviado, agregarMensaje } = useWhatsAppHistory();
+const { agregarMensaje } = useWhatsAppHistory();
 const sucursalesSeleccionadas = ref<number[]>([]);
 
 // Buscador de sucursales
@@ -394,7 +388,6 @@ const seleccionablesSeleccionados = computed(() => {
 const isWhatsModalOpen = ref(false);
 const isSendingWhatsApp = ref(false);
 const whatsAppMessage = ref("");
-const forzarReenvio = ref(false);
 
 function openWhatsModal() {
   isWhatsModalOpen.value = true;
@@ -429,19 +422,11 @@ async function sendWhatsApp() {
 
     const ok: string[] = [];
     const fail: { nombre: string; motivo: string }[] = [];
-    const omitidos: string[] = [];
 
     for (const v of ventasSeleccionadas) {
       try {
         const telefono = normalizePhone(v.Telefonos ?? "");
         if (!telefono) throw new Error("Teléfono inválido");
-
-        // 🔍 Verificar si ya fue enviado (solo si no se fuerza reenvío)
-        const mensajeExistente = yaFueEnviado('aviso_compra', telefono, String(v.venta_CodVenta));
-        if (mensajeExistente && !forzarReenvio.value) {
-          omitidos.push(`${v.Nombre} (ya enviado)`);
-          continue;
-        }
 
         await fetchDetalle(v.venta_CodVenta);
 
@@ -472,12 +457,19 @@ async function sendWhatsApp() {
 
         const response = await whatsappService.sendAvisoCompra(payload);
         
-        // 📱 Guardar en historial
-        agregarMensaje({
+        // 📱 Guardar en historial BD
+        await agregarMensaje({
           tipo: 'aviso_compra',
+          sourceSystem: 'VENTA',
+          sourceId: String(v.venta_CodVenta),
+          externalClientId: String(v.NroDoc ?? v.venta_CodVenta),
           telefono: telefono,
           nombre: v.Nombre,
-          cod_venta: String(v.venta_CodVenta),
+          payloadSnapshot: {
+            productos: productosLista,
+            metodosPago: metodosLista,
+            total: detalle.value?.total || 0
+          },
           response: response
         });
 
@@ -491,14 +483,10 @@ async function sendWhatsApp() {
     const total = ventasSeleccionadas.length;
     const enviados = ok.length;
     const errores = fail.length;
-    const saltados = omitidos.length;
 
     whatsAppMessage.value =
-      `Enviados ${enviados}/${total}` +
-      (saltados ? ` (${saltados} omitidos)` : "") + 
-      "." +
+      `Enviados ${enviados}/${total}.` +
       (ok.length ? ` ✅ OK: ${ok.join(" | ")}.` : "") +
-      (omitidos.length ? ` ⏭️ Omitidos: ${omitidos.join(" | ")}.` : "") +
       (fail.length ? ` ❌ Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
 
     if (errores === 0) {

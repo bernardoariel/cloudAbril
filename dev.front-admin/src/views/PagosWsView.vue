@@ -122,12 +122,6 @@
         <div class="bg-base-200 p-3 rounded text-sm">
           <p><strong>Registros seleccionados:</strong> {{ seleccionablesSeleccionados }}</p>
           <p><strong>Se enviará al primer registro con teléfono válido</strong></p>
-          <div class="mt-2">
-            <label class="label cursor-pointer justify-start">
-              <input type="checkbox" v-model="forzarReenvio" class="checkbox checkbox-sm mr-2" />
-              <span class="label-text text-sm">🔄 Forzar reenvío (omitir control de duplicados)</span>
-            </label>
-          </div>
           <p class="text-xs text-gray-600 mt-2">
             Template: aviso_pago_abril<br>
             Endpoint: http://localhost:3010/whatsapp/aviso_pago_abril
@@ -190,7 +184,7 @@ const {
 } = usePagos();
 
 const { sucursales, isLoading: loadingSucursales } = useSucursales();
-const { yaFueEnviado, agregarMensaje } = useWhatsAppHistory();
+const { agregarMensaje } = useWhatsAppHistory();
 const sucursalesSeleccionadas = ref<number[]>([]);
 
 // Buscador de sucursales
@@ -275,7 +269,6 @@ const seleccionablesSeleccionados = computed(() => {
 const isWhatsModalOpen = ref(false)
 const isSendingWhatsApp = ref(false)
 const whatsAppMessage = ref('')
-const forzarReenvio = ref(false)
 
 function openWhatsModal() { isWhatsModalOpen.value = true }
 function closeWhatsModal() { isWhatsModalOpen.value = false }
@@ -301,7 +294,6 @@ async function sendWhatsApp() {
 
     const ok: string[] = [];
     const fail: { nombre: string; motivo: string }[] = [];
-    const omitidos: string[] = [];
 
     // 2) Enviar uno por uno
     for (const r of recibosSeleccionados) {
@@ -309,13 +301,7 @@ async function sendWhatsApp() {
         let telefono = normalizePhone(r.Telefonos || r.telefonos || "");
         if (!telefono) throw new Error("Teléfono inválido");
 
-        // 🔍 Verificar si ya fue enviado (solo si no se fuerza reenvío)
         const nroRecibo = String(r.CodReciboPr || r.codReciboPr || "");
-        const mensajeExistente = yaFueEnviado('aviso_pago', telefono, nroRecibo);
-        if (mensajeExistente && !forzarReenvio.value) {
-          omitidos.push(`${r.NombreCont || r.nombreCont} (ya enviado)`);
-          continue;
-        }
 
         // Buscar sucursal
         const sucursal = sucursales.value.find(
@@ -336,12 +322,19 @@ async function sendWhatsApp() {
 
         const response = await whatsappService.sendAvisoPago(payload);
         
-        // 📱 Guardar en historial
-        agregarMensaje({
+        // 📱 Guardar en historial BD
+        await agregarMensaje({
           tipo: 'aviso_pago',
+          sourceSystem: 'PAGO',
+          sourceId: nroRecibo,
+          externalClientId: String(r.NroDoc || r.nroDoc || r.CodReciboPr || r.codReciboPr),
           telefono: telefono,
           nombre: r.NombreCont || r.nombreCont || "",
-          nro_recibo: nroRecibo,
+          payloadSnapshot: {
+            nro_operacion: String(r.codCredito || r.CodCredito || ""),
+            sucursal: nombreSucursal,
+            importe: Number(r.MontoPagado || r.montoPagado || 0)
+          },
           response: response
         });
 
@@ -355,14 +348,10 @@ async function sendWhatsApp() {
     const total = recibosSeleccionados.length;
     const enviados = ok.length;
     const errores = fail.length;
-    const saltados = omitidos.length;
 
     whatsAppMessage.value =
-      `Enviados ${enviados}/${total}` +
-      (saltados ? ` (${saltados} omitidos)` : "") + 
-      "." +
+      `Enviados ${enviados}/${total}.` +
       (ok.length ? ` ✅ OK: ${ok.join(" | ")}.` : "") +
-      (omitidos.length ? ` ⏭️ Omitidos: ${omitidos.join(" | ")}.` : "") +
       (fail.length ? ` ❌ Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
 
     if (errores === 0) {
