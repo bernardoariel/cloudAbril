@@ -158,9 +158,11 @@
                 :selected-row-key="selectedVentaKey"
                 :selected-keys="selectedKeys"
                 :is-all-selected="isAllSelected"
+                :mensajes-enviados="mensajesEnviados"
                 @row-clicked="handleRowClick"
                 @toggle-row-selection="toggleRowSelection"
                 @set-select-all="setSelectAll"
+                @whatsapp-detail-clicked="handleWhatsAppDetail"
               />
               <PaginationControl
                 :current-page="currentPage"
@@ -244,10 +246,62 @@
       </div>
     </form>
   </dialog>
+
+  <!-- Modal para ver detalle del mensaje -->
+  <dialog id="mensajeDetalleModal" class="modal" :open="modalMensajeOpen">
+    <form method="dialog" class="modal-box max-w-2xl">
+      <h3 class="font-bold text-lg mb-4">📱 Detalle del Mensaje WhatsApp</h3>
+      
+      <div v-if="mensajeDetalle" class="space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <p class="text-sm font-semibold text-gray-600">Tipo:</p>
+            <p class="badge badge-success">🛒 Compra</p>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-600">Fecha de envío:</p>
+            <p>{{ new Date(mensajeDetalle.fecha_envio).toLocaleString('es-AR') }}</p>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+          <p class="text-sm font-semibold text-gray-600">Cliente:</p>
+          <p class="text-lg">{{ mensajeDetalle.nombre }}</p>
+        </div>
+
+        <div>
+          <p class="text-sm font-semibold text-gray-600">Teléfono:</p>
+          <p>
+            <a :href="`https://wa.me/${mensajeDetalle.telefono}`" target="_blank" class="link link-primary">
+              {{ mensajeDetalle.telefono }}
+            </a>
+          </p>
+        </div>
+
+        <div>
+          <p class="text-sm font-semibold text-gray-600">Referencia:</p>
+          <p>{{ mensajeDetalle.source_system }}: {{ mensajeDetalle.source_id }}</p>
+        </div>
+
+        <div v-if="mensajeDetalle.response" class="mt-4">
+          <p class="text-sm font-semibold text-gray-600 mb-2">Respuesta del servidor:</p>
+          <div class="bg-base-200 p-3 rounded text-xs overflow-auto max-h-60">
+            <pre>{{ JSON.stringify(mensajeDetalle.response, null, 2) }}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-action">
+        <button class="btn" @click="cerrarModalMensaje">Cerrar</button>
+      </div>
+    </form>
+  </dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import DateRangeFilter from "@/components/DateRangeFilter.vue";
 import DataTable from "@/components/DataTable.vue";
 import PaginationControl from "@/components/PaginationControl.vue";
@@ -292,8 +346,32 @@ const {
 } = useDetalleFactura();
 
 const { sucursales, isLoading: loadingSucursales } = useSucursales();
-const { agregarMensaje } = useWhatsAppHistory();
+const { mensajesEnviados, agregarMensaje, cargarHistorial } = useWhatsAppHistory();
 const sucursalesSeleccionadas = ref<number[]>([]);
+
+// Modal para mostrar detalle del mensaje
+const modalMensajeOpen = ref(false);
+const mensajeDetalle = ref<any>(null);
+
+// Cargar historial al montar el componente
+onMounted(async () => {
+  try {
+    await cargarHistorial({ tipo: 'aviso_compra' });
+  } catch (e) {
+    console.error('Error al cargar historial:', e);
+  }
+});
+
+// Manejar clic en ícono de WhatsApp
+const handleWhatsAppDetail = (mensaje: any) => {
+  mensajeDetalle.value = mensaje;
+  modalMensajeOpen.value = true;
+};
+
+const cerrarModalMensaje = () => {
+  modalMensajeOpen.value = false;
+  mensajeDetalle.value = null;
+};
 
 // Buscador de sucursales
 const textoBusquedaSucursal = ref("");
@@ -488,6 +566,8 @@ async function sendWhatsApp() {
       (fail.length ? ` ❌ Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
 
     if (errores === 0) {
+      // Recargar historial después de enviar exitosamente
+      await cargarHistorial({ tipo: 'aviso_compra' });
       setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ""; }, 1500);
     }
   } catch (err: any) {

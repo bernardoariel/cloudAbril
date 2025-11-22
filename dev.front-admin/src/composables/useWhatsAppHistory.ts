@@ -99,6 +99,16 @@ export const useWhatsAppHistory =()=>{
     }
   }
 
+  // Verificar si existe un mensaje enviado para un registro específico (por fecha y tipo)
+  const verificarMensajeEnviado = (tipo: 'aviso_compra' | 'aviso_pago', sourceId: string, fecha: Date) => {
+    const fechaBusqueda = new Date(fecha).toDateString()
+    return mensajesEnviados.value.find(m => 
+      m.tipo === tipo && 
+      m.source_id === sourceId &&
+      new Date(m.fecha_envio).toDateString() === fechaBusqueda
+    ) || null
+  }
+
   // Obtener mensajes por tipo
   const mensajesPorTipo = (tipo: 'aviso_compra' | 'aviso_pago' | 'reclamo_pago') => {
     return computed(() => mensajesEnviados.value.filter(m => m.tipo === tipo))
@@ -134,6 +144,7 @@ export const useWhatsAppHistory =()=>{
     mensajesHoy,
     agregarMensaje,
     cargarHistorial,
+    verificarMensajeEnviado,
     mensajesPorTipo,
     limpiarHistorial,
     removerMensaje
