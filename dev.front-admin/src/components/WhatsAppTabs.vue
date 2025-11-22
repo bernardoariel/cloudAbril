@@ -24,6 +24,18 @@
       :checked="route.name === 'pagosWs'"
       @change="go('/pagosws')"
     />
+    <input
+      type="radio"
+      name="whatsTabs"
+      role="tab"
+      aria-label="📱 Historial"
+      class="tab"
+      :class="
+        route.name === 'whatsappHistorial' ? 'tab-active bg-primary text-primary-content' : ''
+      "
+      :checked="route.name === 'whatsappHistorial'"
+      @change="go('/whatsapp/historial')"
+    />
     <!-- <input
       type="radio"
       name="whatsTabs"

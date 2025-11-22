@@ -184,7 +184,6 @@
           :errorDetalle="errorDetalle"
           :metodosPago="metodosPago"
         />
-        <WhatsAppHistoryPanel />
       </div>
     </div>
   </div>
@@ -254,7 +253,6 @@ import DataTable from "@/components/DataTable.vue";
 import PaginationControl from "@/components/PaginationControl.vue";
 import VentaDetailCard from "@/components/VentaDetailCard.vue";
 import WhatsAppTabs from "@/components/WhatsAppTabs.vue";
-import WhatsAppHistoryPanel from "@/components/WhatsAppHistoryPanel.vue";
 import { useVentas } from "../composables/useVentas";
 import type { Venta } from "../interfaces/Venta";
 import { useDetalleFactura } from "@/composables/useDetalleFactura";

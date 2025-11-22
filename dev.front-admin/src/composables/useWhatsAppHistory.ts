@@ -61,6 +61,44 @@ export const useWhatsAppHistory =()=>{
     }
   }
 
+  // Cargar mensajes del historial desde el backend
+  const cargarHistorial = async (filtros?: {
+    tipo?: 'aviso_compra' | 'aviso_pago' | 'reclamo_pago'
+    externalClientId?: string
+    sourceId?: string
+    status?: string
+  }) => {
+    try {
+      const params = new URLSearchParams()
+      if (filtros?.tipo) params.append('tipo', filtros.tipo)
+      if (filtros?.externalClientId) params.append('externalClientId', filtros.externalClientId)
+      if (filtros?.sourceId) params.append('sourceId', filtros.sourceId)
+      if (filtros?.status) params.append('status', filtros.status)
+
+      const response = await backendApi.get(`/whatsapp-history/messages?${params.toString()}`)
+      
+      // Mapear los datos del backend al formato local
+      if (response.data?.items) {
+        mensajesEnviados.value = response.data.items.map((item: any) => ({
+          id: item.id,
+          tipo: item.tipo,
+          telefono: item.telefono,
+          nombre: item.nombre,
+          source_system: item.source_system,
+          source_id: item.source_id,
+          fecha_envio: new Date(item.created_at),
+          response: item.response ? JSON.parse(item.response) : null
+        }))
+      }
+      
+      console.log('✅ Historial cargado:', mensajesEnviados.value.length, 'mensajes')
+      return mensajesEnviados.value
+    } catch (error: any) {
+      console.error('❌ Error al cargar historial:', error)
+      throw error
+    }
+  }
+
   // Obtener mensajes por tipo
   const mensajesPorTipo = (tipo: 'aviso_compra' | 'aviso_pago' | 'reclamo_pago') => {
     return computed(() => mensajesEnviados.value.filter(m => m.tipo === tipo))
@@ -95,6 +133,7 @@ export const useWhatsAppHistory =()=>{
     totalMensajes,
     mensajesHoy,
     agregarMensaje,
+    cargarHistorial,
     mensajesPorTipo,
     limpiarHistorial,
     removerMensaje

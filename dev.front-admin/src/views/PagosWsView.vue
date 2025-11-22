@@ -102,7 +102,6 @@
       <!-- Columna del Detalle (ocupa 1 de 3 columnas en LG) -->
       <div class="lg:col-span-1 space-y-4">
         <ReciboDetailCard :recibo="selectedRecibo" />
-        <WhatsAppHistoryPanel />
       </div>
     </div>
   </div>
@@ -154,7 +153,6 @@ import DataTable from '@/components/DataTable.vue';
 import PaginationControl from '@/components/PaginationControl.vue';
 import ReciboDetailCard from '@/components/ReciboDetailCard.vue';
 import WhatsAppTabs from '@/components/WhatsAppTabs.vue';
-import WhatsAppHistoryPanel from '@/components/WhatsAppHistoryPanel.vue';
 import { usePagos } from '../composables/usePagos';
 import type { Recibo } from '../interfaces/Recibo';
 import { useSucursales } from '@/modules/sqlserver/sucursales/composable/useSucursales';
