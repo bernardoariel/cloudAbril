@@ -17,7 +17,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./server/backend
     container_name: backend
     env_file:
       - ./backend/.env
@@ -30,7 +30,7 @@ services:
 
   ws:
     build:
-      context: ./ws
+      context: ./server/ws
     container_name: ws-service
     env_file:
       - ./ws/.env
@@ -51,7 +51,7 @@ services:
 
   front-admin:
     build:
-      context: ./front-admin
+      context: ./server/front-admin
     container_name: front-admin
     ports:
       - "8081:80"
