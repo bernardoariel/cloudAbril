@@ -1,0 +1,31 @@
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: dev-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: MyPostgresDB
+    ports:
+      - '5432:5432'
+    volumes:
+      - dev_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dev-network
+
+  dev-portal:
+    build:
+      context: ./dev.portal
+    container_name: dev-portal
+    ports:
+      - '8082:80'
+    networks:
+      - dev-network
+
+volumes:
+  dev_postgres_data:
+
+networks:
+  dev-network:
+    driver: bridge
