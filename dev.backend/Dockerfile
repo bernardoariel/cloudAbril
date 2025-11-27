@@ -1,5 +1,5 @@
-# Etapa 1: build con dependencias
-FROM node:18 AS builder
+# ----------- ETAPA 1: BUILDER -----------
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -9,14 +9,19 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Etapa 2: imagen final de producción
-FROM node:18-alpine
+
+# ----------- ETAPA 2: RUNTIME -----------
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+COPY package*.json ./
+RUN npm install --omit=dev
 
+COPY --from=builder /app/dist ./dist
+
+ENV NODE_ENV=production
 EXPOSE 3000
-CMD ["node", "dist/src/main"]
+
+# ⬇️ ACA EL CAMBIO IMPORTANTE
+CMD ["npm", "run", "start:prod"]
