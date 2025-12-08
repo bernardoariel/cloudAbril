@@ -3,17 +3,17 @@ import { refreshToken } from '@/modules/Auth/services/actions'; // La función p
 import { useAuthStore } from '@/store/useAuth'; // Importar el store
 import { getActivePinia } from 'pinia'; // Importar para verificar si Pinia está activo
 
-const getApiBaseUrl = () => {
+/* const getApiBaseUrl = () => {
   console.log(import.meta.env.MODE)
   if (import.meta.env.MODE === 'production') {
     return import.meta.env.VITE_API_BASE_URL_PROD;
   }
   return import.meta.env.VITE_API_BASE_URL_LOCAL;
-};
+}; */
 
 // Crear la instancia de Axios
 const abrilApiData = axios.create({
-  baseURL: getApiBaseUrl(),
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
 // Inicialización del AuthStore desde localStorage

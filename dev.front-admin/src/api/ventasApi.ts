@@ -1,6 +1,6 @@
 import type { Venta, MetodoPagoVenta } from '../interfaces/Venta';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const formatDateForApi = (dateString: string) => {
   if (!dateString.includes('/')) return dateString; // Si ya está en otro formato, no lo toques.

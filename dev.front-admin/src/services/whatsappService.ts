@@ -1,5 +1,3 @@
-// src/services/whatsappService.ts
-import { WHATSAPP_BASE_URL } from '@/common/config';
 
 export interface AvisoCompraPayload {
   to: string;
@@ -23,7 +21,7 @@ export interface AvisoPagoPayload {
 }
 
 class WhatsappService {
-  private baseUrl = WHATSAPP_BASE_URL ?? 'http://localhost:3010';
+  private baseUrl = import.meta.env.VITE_WHATSAPP_BASE_URL;
 
   async sendAvisoCompra(data: AvisoCompraPayload) {
     return this.post(`${this.baseUrl}/whatsapp/aviso_compra_abril`, data);

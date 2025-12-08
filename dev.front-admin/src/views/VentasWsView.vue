@@ -213,7 +213,7 @@
           <p><strong>Se enviará al primer registro con teléfono válido</strong></p>
           <p class="text-xs text-gray-600 mt-2">
             Template: aviso_compra<br />
-            Endpoint: http://localhost:3010/whatsapp/template/aviso_compra_abril
+            Endpoint!: {{ WHATSAPP_BASE_URL }}/whatsapp/template/aviso_compra_abril
           </p>
         </div>
       </div>
@@ -316,7 +316,7 @@ import { whatsappService } from '../services/whatsappService';
 import { normalizePhone } from '../common/helpers/normalizePhone';
 import { sleep } from '../common/helpers/sleep';
 
-
+const WHATSAPP_BASE_URL = import.meta.env.VITE_WHATSAPP_BASE_URL
 const {
   isLoading,
   error,

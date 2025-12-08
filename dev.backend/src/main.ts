@@ -26,6 +26,6 @@ async function bootstrap() {
     forbidNonWhitelisted: true, // Error si hay propiedades no esperadas
     transform: true // Transforma automáticamente a tipos de TS
   }));
-  await app.listen(3000);
+  await app.listen(3005);
 }
 bootstrap();

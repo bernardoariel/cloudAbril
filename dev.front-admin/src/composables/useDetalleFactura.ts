@@ -14,7 +14,7 @@ export function useDetalleFactura() {
     error.value = null;
     try {
       const { data } = await axios.get(
-        `http://localhost:3000/api/clientes-ventas/completa/${nroOperacion}`,
+        `http://vps-5487155-x.dattaweb.com:3000/api/clientes-ventas/completa/${nroOperacion}`,
       );
       detalle.value = data;
       metodosPago.value = await getMetodosPagoByVenta(nroOperacion);

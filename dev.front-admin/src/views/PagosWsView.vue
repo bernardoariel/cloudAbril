@@ -125,7 +125,7 @@
           <p><strong>Se enviará al primer registro con teléfono válido</strong></p>
           <p class="text-xs text-gray-600 mt-2">
             Template: aviso_pago_abril<br>
-            Endpoint: http://localhost:3010/whatsapp/aviso_pago_abril
+            Endpoint: {{WHATSAPP_BASE_URL}}/whatsapp/aviso_pago_abril
           </p>
         </div>
       </div>
@@ -234,6 +234,7 @@ const {
   setSelectAll,
   filteredRecibos
 } = usePagos();
+const WHATSAPP_BASE_URL = import.meta.env.VITE_WHATSAPP_BASE_URL
 
 const { sucursales, isLoading: loadingSucursales } = useSucursales();
 const { mensajesEnviados, agregarMensaje, cargarHistorial } = useWhatsAppHistory();
