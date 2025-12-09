@@ -7,9 +7,9 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="label">
-              <span class="label-text font-semibold">Código Recibo:</span>
+              <span class="label-text font-semibold">Recibo PRNro.:</span>
             </label>
-            <p class="text-sm">{{ recibo.CodReciboPr }}</p>
+              <p class="text-sm font-bold text-primary"><strong>{{ recibo.CodReciboPr }}</strong></p>
           </div>
           
           <div>

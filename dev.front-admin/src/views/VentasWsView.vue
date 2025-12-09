@@ -517,7 +517,17 @@ async function sendWhatsApp() {
         let metodosLista = "-";
         if (metodosPago.value?.length) {
           metodosLista = metodosPago.value
-            .map((m: any) => `${m.CodForPago} $${Number(m.Importe ?? 0).toLocaleString("es-AR")}`)
+            .map((m: any) => {
+              const label = m.CodForPago;
+              
+              // Solo para métodos que contienen CREDITO y tienen cuotas
+              if (String(label).includes('CREDITO') && m.CantCuotas && m.CantCuotas > 1) {
+                const montoPorCuota = m.Importe / m.CantCuotas;
+                return `${label} ${m.CantCuotas} cuotas de $${Number(montoPorCuota).toLocaleString("es-AR")} ($${Number(m.Importe ?? 0).toLocaleString("es-AR")})`;
+              } else {
+                return `${label} $${Number(m.Importe ?? 0).toLocaleString("es-AR")}`;
+              }
+            })
             .join(",");
         }
 

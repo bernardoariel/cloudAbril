@@ -27,4 +27,8 @@ export interface MetodoPagoVenta {
   Id_Turno: number;
   Capital: number;
   Id_Ejercicio: number | null;
+  // Campos opcionales para información de crédito
+  CantCuotas?: number;
+  CuotaCapital?: number;
+  IntMenCuota?: number;
 } 

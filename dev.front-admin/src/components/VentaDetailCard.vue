@@ -57,7 +57,14 @@ const detalle = computed(() => {
     metodos = '\n\nMetodos ->';
     props.metodosPago.forEach((m) => {
       const label = METODOS_PAGO_LABELS.value[m.CodForPago] || m.CodForPago;
-      metodos += `\n${label} $${m.Importe.toLocaleString('es-AR')}`;
+      
+      // Si es crédito y tiene información de cuotas
+      if (label.includes('CREDITO') && m.CantCuotas && m.CantCuotas > 1) {
+        const montoPorCuota = m.Importe / m.CantCuotas;
+        metodos += `\n${label} ${m.CantCuotas} cuotas de $${montoPorCuota.toLocaleString('es-AR')} ($${m.Importe.toLocaleString('es-AR')})`;
+      } else {
+        metodos += `\n${label} $${m.Importe.toLocaleString('es-AR')}`;
+      }
     });
   }
 

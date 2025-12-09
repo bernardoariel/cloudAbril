@@ -114,7 +114,8 @@ const mensajeEnviado = (item: any) => {
             </template>
           </td>
           <td v-for="column in columns" :key="column.key" @click="emit('row-clicked', item)" class="cursor-pointer">
-            {{ getCellValue(item, column) }}
+            <span v-if="column.key === 'Nombre' || column.key === 'NombreCont'" v-html="getCellValue(item, column)"></span>
+            <span v-else>{{ getCellValue(item, column) }}</span>
           </td>
         </tr>
       </tbody>

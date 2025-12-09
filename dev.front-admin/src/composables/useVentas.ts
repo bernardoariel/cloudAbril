@@ -29,7 +29,14 @@ const formatCurrency = (amount: number) => {
 // --- Definición de columnas ---
 const columns = ref([
   { key: 'venta_Fecha', label: 'Fecha', format: (item: Venta) => formatDate(item.venta_Fecha) },
-  { key: 'Nombre', label: 'Nombre Cliente', format: (item: Venta) => `${item.NombreCont || ''} ${item.ApellidoCont || ''}`.trim() },
+  { key: 'Nombre', label: 'Nombre Cliente', format: (item: Venta) => {
+    const apellido = item.ApellidoCont || '';
+    const nombre = item.NombreCont || '';
+    if (!apellido && !nombre) return '';
+    if (!apellido) return nombre;
+    if (!nombre) return `<strong>${apellido}</strong>`;
+    return `<strong>${apellido}</strong>, ${nombre}`;
+  }},
   { key: 'venta_CodVenta', label: 'Cod. Venta' },
   { key: 'Telefonos', label: 'Teléfonos', format: (item: Venta) => formatPhoneNumber(item.Telefonos) },
   { key: 'venta_Total', label: 'Total', format: (item: Venta) => formatCurrency(item.venta_Total) },

@@ -3,9 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientesMetPagosService } from './clientes-metpagos.service';
 import { ClientesMetPagosController } from './clientes-metpagos.controller';
 import { ClienteMetPago } from './entities/cliente-metpago.entity';
+import { ClienteCredito } from '../clientes-creditos/entities/cliente-credito.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ClienteMetPago], 'sqlserverConnection')],
+  imports: [TypeOrmModule.forFeature([ClienteMetPago, ClienteCredito], 'sqlserverConnection')],
   controllers: [ClientesMetPagosController],
   providers: [ClientesMetPagosService],
 })
