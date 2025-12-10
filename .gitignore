@@ -6,6 +6,8 @@ front-precios/
 nginx/
 portal/
 ws/
+server-abril/
+server-abril/frontend/
 
 # SSL certificates and acme.sh data
 nginx/acme.sh/
@@ -92,3 +94,10 @@ out/
 # Temporary folders
 tmp/
 temp/
+
+# Ignorar todo el contenido de la carpeta server-abril
+server-abril/**
+
+# Ignorar subcarpetas específicas dentro de server-abril
+server-abril/frontend/
+server-abril/frontend/dist/
