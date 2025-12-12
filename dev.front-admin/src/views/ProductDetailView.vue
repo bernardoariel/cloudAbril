@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto py-8">
     <h1 class="text-2xl font-bold mb-4 text-center">Detalle del Producto</h1>
-    <div v-if="product" class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+    <div v-if="product" class="max-w-4xl mx-auto bg-base-100 rounded-lg shadow-lg overflow-hidden">
       <div class="md:flex">
         <div class="md:flex-shrink-0 flex items-center justify-center">
           <img

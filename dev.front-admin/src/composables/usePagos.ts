@@ -38,6 +38,7 @@ const columns = ref([
     if (!nombre) return `<strong>${apellido}</strong>`;
     return `<strong>${apellido}</strong>, ${nombre}`;
   }},
+  { key: 'CodReciboPr', label: 'Recibo PRNro.', format: (item: any) => `<span class=\"text-primary font-bold\">${item.CodReciboPr || ''}</span>` },
   { key: 'CodCredito', label: 'Cod. Crédito' },
   { key: 'Telefonos', label: 'Teléfonos', format: (item: any) => formatPhoneNumber(item.Telefonos) },
   { key: 'MontoPagado', label: 'Importe', format: (item: any) => formatCurrency(item.MontoPagado) },

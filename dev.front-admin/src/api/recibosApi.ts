@@ -26,6 +26,7 @@ export const getRecibosByDateRange = async (dateFrom: string, dateTo: string): P
     }
 
     const data = await response.json();
+    console.log(data)
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Error al obtener recibos:', error);

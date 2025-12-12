@@ -49,6 +49,25 @@
           
           <div>
             <label class="label">
+              <span class="label-text font-semibold">Sucursal:</span>
+            </label>
+            <div v-if="nombreSucursal" class="flex items-center gap-2">
+              <p class="text-sm font-medium text-blue-600">{{ nombreSucursal }}</p>
+              <span class="badge badge-outline text-xs">{{ recibo.CodSucursal || recibo.codSucRecibo || recibo.CodSucRecibo }}</span>
+            </div>
+            <div v-else-if="isLoading" class="flex items-center gap-2 text-blue-500">
+              <div class="loading loading-spinner loading-xs"></div>
+              <p class="text-sm">Cargando sucursales...</p>
+            </div>
+            <div v-else-if="recibo.CodSucursal || recibo.codSucRecibo || recibo.CodSucRecibo" class="text-orange-600">
+              <p class="text-sm">Código: {{ recibo.CodSucursal || recibo.codSucRecibo || recibo.CodSucRecibo }}</p>
+              <p class="text-xs text-gray-500">(Sucursal no encontrada)</p>
+            </div>
+            <p v-else class="text-sm text-gray-400">No disponible</p>
+          </div>
+          
+          <div>
+            <label class="label">
               <span class="label-text font-semibold">Nombre Cliente:</span>
             </label>
             <p class="text-sm">{{ recibo.NombreCont }} {{ recibo.ApellidoCont }}</p>
@@ -73,11 +92,51 @@
 </template>
 
 <script setup lang="ts">
+import { computed, watchEffect } from 'vue';
 import type { Recibo } from '../interfaces/Recibo';
+import { useSucursales } from '@/modules/sqlserver/sucursales/composable/useSucursales';
 
 const props = defineProps<{
   recibo: any; // Aceptar cualquier forma de objeto
 }>();
+
+const { sucursales, isLoading, findSucursalById } = useSucursales();
+
+// Debug: Mostrar campos de sucursal disponibles
+watchEffect(() => {
+  if (props.recibo) {
+    console.log('🏢 Campos de sucursal en recibo:', {
+      CodSucursal: props.recibo.CodSucursal,
+      codSucRecibo: props.recibo.codSucRecibo,
+      CodSucRecibo: props.recibo.CodSucRecibo,
+      todosLosCampos: Object.keys(props.recibo).filter(key => 
+        key.toLowerCase().includes('suc')
+      ),
+      sucursalesCargadas: sucursales.value.length,
+      isLoading: isLoading.value
+    });
+  }
+});
+
+// Computed para obtener el nombre de la sucursal
+const nombreSucursal = computed(() => {
+  if (!props.recibo) return null;
+  
+  // Priorizar CodSucursal que es lo que viene del API
+  const codigoSucursal = props.recibo.CodSucursal || props.recibo.codSucRecibo || props.recibo.CodSucRecibo;
+  
+  if (!codigoSucursal) return null;
+  
+  const sucursal = findSucursalById(codigoSucursal);
+  
+  console.log('🔍 Buscando sucursal:', {
+    codigo: codigoSucursal,
+    sucursalesDisponibles: sucursales.value.map(s => ({ cod: s.CodSucursal, nombre: s.NombreSuc })),
+    encontrada: sucursal
+  });
+  
+  return sucursal ? sucursal.NombreSuc : null;
+});
 
 const formatDate = (dateString: string | null | undefined) => {
   if (!dateString) return '';

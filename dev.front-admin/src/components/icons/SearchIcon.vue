@@ -1,24 +1,3 @@
 <template>
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path
-        d="M22 14V12C22 8.22876 22 6.34315 20.8284 5.17157C19.6569 4 17.7712 4 14 4M14 22H10C6.22876 22 4.34315 22 3.17157 20.8284C2 19.6569 2 17.7712 2 14V12C2 8.22876 2 6.34315 3.17157 5.17157C4.34315 4 6.22876 4 10 4"
-        stroke="#1C274C"
-        stroke-width="1.5"
-        stroke-linecap="round"
-      ></path>
-      <path d="M7 4V2.5" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round"></path>
-      <path d="M17 4V2.5" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round"></path>
-      <circle cx="18" cy="18" r="3" stroke="#1C274C" stroke-width="1.5"></circle>
-      <path d="M20.5 20.5L22 22" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round"></path>
-      <path
-        d="M21.5 9H16.625H10.75M2 9H5.875"
-        stroke="#1C274C"
-        stroke-width="1.5"
-        stroke-linecap="round"
-      ></path>
-    </g>
-  </svg>
+  <svg fill="#000000" viewBox="0 0 256.00098 256.00098" id="Flat" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g opacity="0.2"> <circle cx="115.99512" cy="116" r="84"></circle> </g> <path d="M229.64648,218.34424l-43.2229-43.2229a92.111,92.111,0,1,0-11.31445,11.31347l43.2229,43.2229a8.00018,8.00018,0,1,0,11.31445-11.31347ZM39.99512,116a76,76,0,1,1,76,76A76.08614,76.08614,0,0,1,39.99512,116Z"></path> </g></svg>
 </template>

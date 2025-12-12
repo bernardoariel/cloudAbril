@@ -1,3 +1,62 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Tema Coffee - Esquinas cuadradas */
+[data-theme='coffee'] .card,
+[data-theme='coffee'] .btn,
+[data-theme='coffee'] .input,
+[data-theme='coffee'] .select,
+[data-theme='coffee'] .textarea,
+[data-theme='coffee'] .modal-box,
+[data-theme='coffee'] .dropdown-content,
+[data-theme='coffee'] .alert,
+[data-theme='coffee'] .badge {
+  border-radius: 0 !important;
+}
+
+[data-theme='coffee'] .rounded,
+[data-theme='coffee'] .rounded-md,
+[data-theme='coffee'] .rounded-lg,
+[data-theme='coffee'] .rounded-xl,
+[data-theme='coffee'] .rounded-2xl,
+[data-theme='coffee'] .rounded-3xl,
+[data-theme='coffee'] .rounded-full {
+  border-radius: 0 !important;
+}
+
+/* Tema Coffee Minimal - Esquinas cuadradas */
+[data-theme='coffee-minimal'] .card,
+[data-theme='coffee-minimal'] .btn,
+[data-theme='coffee-minimal'] .input,
+[data-theme='coffee-minimal'] .select,
+[data-theme='coffee-minimal'] .textarea,
+[data-theme='coffee-minimal'] .modal-box,
+[data-theme='coffee-minimal'] .dropdown-content,
+[data-theme='coffee-minimal'] .alert,
+[data-theme='coffee-minimal'] .badge {
+  border-radius: 0 !important;
+}
+
+[data-theme='coffee-minimal'] .rounded,
+[data-theme='coffee-minimal'] .rounded-md,
+[data-theme='coffee-minimal'] .rounded-lg,
+[data-theme='coffee-minimal'] .rounded-xl,
+[data-theme='coffee-minimal'] .rounded-2xl,
+[data-theme='coffee-minimal'] .rounded-3xl,
+[data-theme='coffee-minimal'] .rounded-full {
+  border-radius: 0 !important;
+}
+
+/* Tema Coffee Warm - Esquinas redondeadas */
+[data-theme='coffee-warm'] .card {
+  border-radius: 1rem !important;
+}
+
+[data-theme='coffee-warm'] .btn {
+  border-radius: 0.5rem !important;
+}
+
+[data-theme='coffee-warm'] .badge {
+  border-radius: 2rem !important;
+}

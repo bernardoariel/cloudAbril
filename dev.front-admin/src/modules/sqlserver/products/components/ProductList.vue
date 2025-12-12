@@ -159,7 +159,7 @@ const countProductsByMarca = (CodMarca: number) => {
 // Clase dinámica para estilos
 const styles = (index: number) => [
   'flex flex-col p-4 mb-2 shadow-md hover:shadow-lg rounded-2xl relative transition-transform duration-300 transform hover:-translate-y-1',
-  index % 2 === 0 ? 'bg-white' : 'bg-gray-800 text-white',
+  index % 2 === 0 ? 'bg-base-100' : 'bg-base-300 text-base-content',
 ];
 
 // Actualiza el selectedMarca basado en un término parcial

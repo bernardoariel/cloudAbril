@@ -1,5 +1,7 @@
 <template>
-  <div class="card bg-orange-300 shadow-xl p-4 lg:flex lg:flex-row lg:items-center mb-16">
+  <div
+    class="card bg-base-200 shadow-xl p-4 lg:flex lg:flex-row lg:items-center mb-16 border border-primary/20"
+  >
     <figure class="lg:w-1/2 flex justify-center">
       <img
         v-if="producto.Imagen"
@@ -10,21 +12,23 @@
       />
     </figure>
     <router-link :to="`/product/${producto.CodProducto}/price`" class="card-body lg:w-1/2 lg:pl-8">
-      <h1 class="text-center text-2xl font-bold text-blue-950">{{ producto.CodProducto }}</h1>
+      <h1 class="text-center text-2xl font-bold text-primary">{{ producto.CodProducto }}</h1>
       <h2 class="card-title text-center mt-2">{{ producto.Producto }}</h2>
       <p class="text-center">{{ producto.Descripcion }}</p>
       <div class="flex flex-col items-center">
         <p>{{ producto.Medida }}</p>
         <p>{{ findMarcasById(producto.CodMarca)?.Marca }}</p>
       </div>
-      <h2 class="text-center font-semibold bg-orange-500 text-white my-2 px-4 py-2 rounded-lg">
+      <h2
+        class="text-center font-semibold bg-primary text-primary-content my-2 px-4 py-2 rounded-lg"
+      >
         {{ producto.Stock }} {{ producto.Stock === 1 ? ' Unidad' : ' Unidades' }}
       </h2>
-      <h2 class="text-blue-950 text-center font-semibold">
+      <h2 class="text-base-content text-center font-semibold">
         {{ sucursalesInfo }}
       </h2>
       <div class="card-actions justify-center">
-        <h2 class="text-3xl mt-4 font-bold text-blue-950">
+        <h2 class="text-3xl mt-4 font-bold text-primary">
           {{ formatPrice(producto.Precio) }}
         </h2>
       </div>

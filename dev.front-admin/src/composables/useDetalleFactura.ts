@@ -3,6 +3,8 @@ import axios from 'axios';
 import { getMetodosPagoByVenta } from '../api/ventasApi';
 import type { MetodoPagoVenta } from '../interfaces/Venta';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export function useDetalleFactura() {
   const detalle = ref<any>(null);
   const loading = ref(false);
@@ -14,7 +16,7 @@ export function useDetalleFactura() {
     error.value = null;
     try {
       const { data } = await axios.get(
-        `http://vps-5487155-x.dattaweb.com:3000/api/clientes-ventas/completa/${nroOperacion}`,
+        `${API_BASE_URL}/clientes-ventas/completa/${nroOperacion}`,
       );
       detalle.value = data;
       metodosPago.value = await getMetodosPagoByVenta(nroOperacion);

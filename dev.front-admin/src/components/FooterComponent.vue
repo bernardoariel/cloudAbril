@@ -1,5 +1,5 @@
 <template>
-  <footer class="btm-nav h-16 bg-orangeCustom4">
+  <footer class="btm-nav h-16 bg-primary">
     <router-link to="/ventasws">
       <button>
         <IconWrapper :icon="WhatsAppIcon" :size="sizeIconWhatsApp" />

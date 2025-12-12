@@ -436,8 +436,8 @@ const ventasFiltradasPorSucursal = computed(() => {
 
 // Computada para paginación sobre las ventas filtradas por sucursal
 const paginatedVentasSucursal = computed(() => {
-  const start = (currentPage.value - 1) * 8;
-  return ventasFiltradasPorSucursal.value.slice(start, start + 8);
+  const start = (currentPage.value - 1) * 7;
+  return ventasFiltradasPorSucursal.value.slice(start, start + 7);
 });
 
 const totalPagesSucursal = computed(() =>

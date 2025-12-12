@@ -12,6 +12,7 @@ import PagosWsView from '@/views/PagosWsView.vue';
 import PersonalizadoWsView from '@/views/PersonalizadoWsView.vue';
 import ClientesMoraWsView from '@/views/clientesMoraWsView.vue';
 import WhatsAppHistorialView from '@/views/WhatsAppHistorialView.vue';
+import WhatsAppPersonalizadoView from '@/views/WhatsAppPersonalizadoView.vue';
 
 // Función para decodificar un JWT
 export function parseJwt(token: string) {
@@ -115,6 +116,12 @@ const routes = [
         name: 'whatsappHistorial',
         component: WhatsAppHistorialView,
         meta: { title: 'Historial WhatsApp', requiresAuth: false },
+      },
+      {
+        path: '/whatsapp/personalizado',
+        name: 'whatsappPersonalizado',
+        component: WhatsAppPersonalizadoView,
+        meta: { title: 'Mensajes Personalizados', requiresAuth: false },
       },
     ],
   },

@@ -320,8 +320,8 @@ const recibosFiltradosPorSucursal = computed(() => {
 
 // Computada para paginación sobre los recibos filtrados por sucursal
 const paginatedRecibosSucursal = computed(() => {
-  const start = (currentPage.value - 1) * 8;
-  return recibosFiltradosPorSucursal.value.slice(start, start + 8);
+  const start = (currentPage.value - 1) * 7;
+  return recibosFiltradosPorSucursal.value.slice(start, start + 7);
 });
 
 const totalPagesSucursal = computed(() => Math.ceil(recibosFiltradosPorSucursal.value.length / 8));
@@ -381,10 +381,17 @@ async function sendWhatsApp() {
         const nroRecibo = String(r.CodReciboPr || r.codReciboPr || "");
 
         // Buscar sucursal
+        console.log('🏢 Buscando sucursal:', {
+          codSucRecibo: r.codSucRecibo || r.CodSucRecibo,
+          sucursalesDisponibles: sucursales.value.map(s => ({ cod: s.CodSucursal, nombre: s.NombreSuc }))
+        });
+        
         const sucursal = sucursales.value.find(
           s => s.CodSucursal === (r.codSucRecibo || r.CodSucRecibo)
         );
-        const nombreSucursal = sucursal ? sucursal.NombreSuc : "SUCURSAL";
+        const nombreSucursal = sucursal ? sucursal.NombreSuc : "SUCURSAL NO ENCONTRADA";
+        
+        console.log('🏢 Sucursal encontrada:', { sucursal, nombreSucursal });
 
         const payload: AvisoPagoPayload = {
           to: telefono,

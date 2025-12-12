@@ -1,7 +1,7 @@
 <template>
-  <div class="app-container bg-gray-100 min-h-screen flex flex-col">
+  <div class="app-container bg-base-200 min-h-screen flex flex-col">
     <NavHeader />
-    <div class="flex-grow bg-orange-200">
+    <div class="flex-grow bg-base-100">
       <RouterView />
     </div>
     <FooterComponent />

@@ -1,12 +1,12 @@
 <template>
-  <div class="w-full h-full bg-orange-200">
+  <div class="w-full h-full bg-base-100">
     <div class="flex flex-col h-full justify-start items-center pt-10">
       <div class="relative w-full max-w-lg px-4">
-        <p v-if="isLoading" class="text-orange-600 text-center text-4xl mt-2">Cargando productos</p>
-        <div v-else class="flex items-center w-full bg-orange-200">
+        <p v-if="isLoading" class="text-primary text-center text-4xl mt-2">Cargando productos</p>
+        <div v-else class="flex items-center w-full bg-base-100">
           <!-- Contenedor del input y loader -->
           <label
-            class="input input-bordered flex items-center gap-2 grow h-12 relative w-full text-orange-900 bg-orange-300"
+            class="input input-bordered flex items-center gap-2 grow h-12 relative w-full text-base-content bg-base-200 border-primary/30"
           >
             <input
               ref="searchInput"
@@ -21,12 +21,7 @@
               @keydown.enter.prevent="selectProduct"
             />
           </label>
-          <button
-            @click="handleSearch"
-            class="btn bg-orangeCustom hover:bg-orangeCustom2 text-white ml-2 h-12"
-          >
-            Buscar
-          </button>
+          <button @click="handleSearch" class="btn btn-primary ml-2 h-12">Buscar</button>
         </div>
 
         <!-- Dropdown de resultados -->
@@ -210,14 +205,14 @@ watch(
 
 <style scoped>
 .highlight {
-  background-color: #ffff00; /* Un amarillo claro para resaltar */
-  color: #000; /* Cambia el color del texto a negro */
-  font-weight: bold; /* Mantén el texto en negrita */
-  padding: 0 2px; /* Un pequeño relleno alrededor del texto resaltado */
-  border-radius: 3px; /* Bordes ligeramente redondeados */
+  background-color: oklch(from var(--p) l c h / 0.2); /* Color primario con transparencia */
+  color: var(--pc); /* Color de contenido primario */
+  font-weight: bold;
+  padding: 0 2px;
+  border-radius: 3px;
 }
 input::placeholder {
-  color: #ef7e00; /* Color para el texto del placeholder */
+  color: oklch(from var(--p) l c h / 0.6); /* Color primario con transparencia */
   opacity: 1;
 }
 </style>

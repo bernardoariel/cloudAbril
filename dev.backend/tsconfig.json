@@ -10,7 +10,7 @@
     "resolveJsonModule": true,
     "target": "ES2021",
     "sourceMap": true,
-    "outDir": "../server-abril/backend/dist",
+    "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
