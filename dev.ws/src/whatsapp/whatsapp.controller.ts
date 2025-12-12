@@ -58,4 +58,9 @@ export class WhatsAppController {
       },
     });
   }
+
+  @Post('hello_world')
+  async sendHelloWorld(@Body('to') to: string) {
+    return this.wsService.sendHelloWorld(to);
+  }
 }

@@ -47,4 +47,33 @@ export class WhatsAppService {
       throw new HttpException(res, status);
     }
   }
+
+  async sendHelloWorld(to: string) {
+    const payload = {
+      messaging_product: 'whatsapp',
+      to,
+      type: 'template',
+      template: {
+        name: 'hello_world',
+        language: { code: 'en_US' },
+      },
+    };
+
+    try {
+      const { data } = await firstValueFrom(
+        this.http.post(this.baseUrl, payload, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+      return data;
+    } catch (err: any) {
+      const res = err?.response?.data ?? err?.message ?? 'Unknown error';
+      const status = err?.response?.status ?? 500;
+      throw new HttpException(res, status);
+    }
+  }
+
 }

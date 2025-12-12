@@ -1,4 +1,3 @@
-
 export interface AvisoCompraPayload {
   to: string;
   nombre: string;
@@ -29,6 +28,10 @@ class WhatsappService {
 
   async sendAvisoPago(data: AvisoPagoPayload) {
     return this.post(`${this.baseUrl}/whatsapp/aviso_pago_abril`, data);
+  }
+
+  async sendHelloWorld(to: string) {
+    return this.post(`${this.baseUrl}/whatsapp/hello_world`, { to });
   }
 
   private async post(url: string, data: any) {

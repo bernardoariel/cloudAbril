@@ -60,7 +60,7 @@
                 <label class="label">
                   <span class="label-text font-semibold">Número de Teléfono</span>
                   <span class="label-text-alt text-info"
-                    >Ej: 3704299434 (se formatea automáticamente)</span
+                    >Ej: 3704299434 (formato: +54 XXX XXX XXXX)</span
                   >
                 </label>
                 <div class="relative">
@@ -344,6 +344,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import WhatsAppTabs from '@/components/WhatsAppTabs.vue';
+import { whatsappService } from '@/services/whatsappService';
 
 // Estados reactivos
 const phoneNumber = ref('');
@@ -367,8 +368,8 @@ const messageLength = computed(() => message.value.length);
 
 const isValidPhone = computed(() => {
   if (!phoneNumber.value) return false;
-  // Regex para validar formato argentino: +54 9 XXX XXX XXXX
-  const phoneRegex = /^\+54\s9\s\d{3}\s\d{3}\s\d{4}$/;
+  // Regex para validar formato argentino: +54 XXX XXX XXXX
+  const phoneRegex = /^\+54\s\d{3}\s\d{3}\s\d{4}$/;
   return phoneRegex.test(phoneNumber.value);
 });
 
@@ -392,36 +393,29 @@ const formatPhoneNumber = () => {
 
   // Si ya comienza con 54, asumir que es formato completo
   if (value.startsWith('54')) {
-    // +54 9 XXX XXX XXXX (total: 12 dígitos después del 54)
-    if (value.length > 13) {
-      value = value.substring(0, 13);
+    // +54 XXX XXX XXXX (total: 12 dígitos después del 54)
+    if (value.length > 12) {
+      value = value.substring(0, 12);
     }
-    if (value.length >= 13) {
-      phoneNumber.value = `+${value.substring(0, 2)} 9 ${value.substring(3, 6)} ${value.substring(
-        6,
-        9,
-      )} ${value.substring(9, 13)}`;
-    } else if (value.length >= 10) {
-      phoneNumber.value = `+${value.substring(0, 2)} 9 ${value.substring(3, 6)} ${value.substring(
-        6,
-        9,
-      )} ${value.substring(9)}`;
-    } else if (value.length >= 7) {
-      phoneNumber.value = `+${value.substring(0, 2)} 9 ${value.substring(3, 6)} ${value.substring(
-        6,
+    if (value.length >= 12) {
+      phoneNumber.value = `+${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(
+        5,
+        8,
+      )} ${value.substring(8, 12)}`;
+    } else if (value.length >= 9) {
+      phoneNumber.value = `+${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(
+        5,
+        8,
+      )} ${value.substring(8)}`;
+    } else if (value.length >= 6) {
+      phoneNumber.value = `+${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(
+        5,
       )}`;
-    } else if (value.length >= 4) {
-      phoneNumber.value = `+${value.substring(0, 2)} 9 ${value.substring(3)}`;
+    } else if (value.length >= 3) {
+      phoneNumber.value = `+${value.substring(0, 2)} ${value.substring(2)}`;
     } else {
       phoneNumber.value = `+${value}`;
     }
-  }
-  // Si comienza con 9, asumir formato con 9 incluido
-  else if (value.startsWith('9') && value.length === 11) {
-    phoneNumber.value = `+54 ${value.substring(0, 1)} ${value.substring(1, 4)} ${value.substring(
-      4,
-      7,
-    )} ${value.substring(7, 11)}`;
   }
   // Caso normal: número sin códigos (ej: 3704299434)
   else {
@@ -429,19 +423,18 @@ const formatPhoneNumber = () => {
       value = value.substring(0, 10);
     }
     if (value.length === 10) {
-      phoneNumber.value = `+54 9 ${value.substring(0, 3)} ${value.substring(
-        3,
+      phoneNumber.value = `+54 ${value.substring(0, 3)} ${value.substring(3, 6)} ${value.substring(
         6,
-      )} ${value.substring(6, 10)}`;
+        10,
+      )}`;
     } else if (value.length >= 7) {
-      phoneNumber.value = `+54 9 ${value.substring(0, 3)} ${value.substring(
-        3,
+      phoneNumber.value = `+54 ${value.substring(0, 3)} ${value.substring(3, 6)} ${value.substring(
         6,
-      )} ${value.substring(6)}`;
+      )}`;
     } else if (value.length >= 4) {
-      phoneNumber.value = `+54 9 ${value.substring(0, 3)} ${value.substring(3)}`;
+      phoneNumber.value = `+54 ${value.substring(0, 3)} ${value.substring(3)}`;
     } else if (value.length >= 1) {
-      phoneNumber.value = `+54 9 ${value}`;
+      phoneNumber.value = `+54 ${value}`;
     }
   }
 };
@@ -471,8 +464,11 @@ const sendMessage = async () => {
 
   isLoading.value = true;
   try {
-    // Simular envío (aquí integrarías con tu API)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Extraer solo el número sin formato para el endpoint
+    const cleanPhone = phoneNumber.value.replace(/\D/g, '');
+
+    // Llamar al endpoint sendHelloWorld
+    const response = await whatsappService.sendHelloWorld(cleanPhone);
 
     // Agregar al historial
     recentSends.value.unshift({
@@ -483,6 +479,9 @@ const sendMessage = async () => {
       status: 'sent',
     });
 
+    // Guardar en localStorage
+    localStorage.setItem('whatsapp-recent-sends', JSON.stringify(recentSends.value));
+
     // Limpiar formulario
     clearForm();
 
@@ -490,6 +489,16 @@ const sendMessage = async () => {
     alert('Mensaje enviado exitosamente');
   } catch (error) {
     console.error('Error al enviar mensaje:', error);
+
+    // Agregar al historial con estado de error
+    recentSends.value.unshift({
+      id: Date.now(),
+      phone: phoneNumber.value,
+      message: message.value.substring(0, 50) + (message.value.length > 50 ? '...' : ''),
+      timestamp: new Date(),
+      status: 'error',
+    });
+
     alert('Error al enviar mensaje');
   } finally {
     isLoading.value = false;
