@@ -236,7 +236,7 @@ const {
 } = usePagos();
 const WHATSAPP_BASE_URL = import.meta.env.VITE_WHATSAPP_BASE_URL
 
-const { sucursales, isLoading: loadingSucursales } = useSucursales();
+const { sucursales, isLoading: loadingSucursales, findSucursalById } = useSucursales();
 const { mensajesEnviados, agregarMensaje, cargarHistorial } = useWhatsAppHistory();
 const sucursalesSeleccionadas = ref<number[]>([]);
 
@@ -315,7 +315,10 @@ const todasSeleccionadas = computed(() =>
 // Computada para filtrar por sucursales seleccionadas
 const recibosFiltradosPorSucursal = computed(() => {
   if (!sucursalesSeleccionadas.value.length) return filteredRecibos.value;
-  return filteredRecibos.value.filter((recibo: any) => sucursalesSeleccionadas.value.includes(recibo.codSucRecibo));
+  return filteredRecibos.value.filter((recibo: any) => {
+    const codigoSucursal = recibo.CodSucursal || recibo.codSucRecibo || recibo.CodSucRecibo;
+    return sucursalesSeleccionadas.value.includes(codigoSucursal);
+  });
 });
 
 // Computada para paginación sobre los recibos filtrados por sucursal
@@ -380,18 +383,24 @@ async function sendWhatsApp() {
 
         const nroRecibo = String(r.CodReciboPr || r.codReciboPr || "");
 
-        // Buscar sucursal
-        console.log('🏢 Buscando sucursal:', {
-          codSucRecibo: r.codSucRecibo || r.CodSucRecibo,
+        // Buscar sucursal - DEBUGGING MEJORADO
+        const codigoSucursal = r.CodSucursal || r.codSucRecibo || r.CodSucRecibo;
+        console.log('🏢 Buscando sucursal para recibo:', {
+          recibo: r.CodReciboPr,
+          codigoSucursal: codigoSucursal,
+          camposDisponibles: Object.keys(r).filter(key => key.toLowerCase().includes('suc')),
+          sucursalesCargadas: sucursales.value.length,
           sucursalesDisponibles: sucursales.value.map(s => ({ cod: s.CodSucursal, nombre: s.NombreSuc }))
         });
         
-        const sucursal = sucursales.value.find(
-          s => s.CodSucursal === (r.codSucRecibo || r.CodSucRecibo)
-        );
+        const sucursal = findSucursalById(codigoSucursal);
         const nombreSucursal = sucursal ? sucursal.NombreSuc : "SUCURSAL NO ENCONTRADA";
         
-        console.log('🏢 Sucursal encontrada:', { sucursal, nombreSucursal });
+        console.log('🏢 Resultado búsqueda sucursal:', { 
+          sucursal, 
+          nombreSucursal,
+          codigoUsado: codigoSucursal 
+        });
 
         const payload: AvisoPagoPayload = {
           to: telefono,
