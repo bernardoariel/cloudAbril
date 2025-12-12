@@ -1,95 +1,77 @@
 <template>
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
-      <h2 class="card-title">Detalle del Recibo</h2>
       
-      <div v-if="recibo" class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="label">
-              <span class="label-text font-semibold">Recibo PRNro.:</span>
-            </label>
-              <p class="text-sm font-bold text-primary"><strong>{{ recibo.CodReciboPr }}</strong></p>
-          </div>
-          
-          <div>
-            <label class="label">
-              <span class="label-text font-semibold">Código Crédito:</span>
-            </label>
-            <p class="text-sm">{{ recibo.CodCredito }}</p>
-          </div>
-          
-          <div>
-            <label class="label">
-              <span class="label-text font-semibold">Fecha:</span>
-            </label>
-            <p class="text-sm">{{ formatDate(recibo.Fecha) }}</p>
-          </div>
-          
-          <div>
-            <label class="label">
-              <span class="label-text font-semibold">Monto Pagado:</span>
-            </label>
-            <p class="text-sm font-bold text-primary">{{ formatCurrency(recibo.MontoPagado) }}</p>
-          </div>
-          
-          <div>
-            <label class="label">
-              <span class="label-text font-semibold">Estado:</span>
-            </label>
-            <p class="text-sm">{{ recibo.Estado }}</p>
-          </div>
-          
-          <div>
-            <label class="label">
-              <span class="label-text font-semibold">Forma de Pago:</span>
-            </label>
-            <p class="text-sm">{{ recibo.CodForPago }}</p>
-          </div>
-          
-          <div>
-            <label class="label">
-              <span class="label-text font-semibold">Sucursal:</span>
-            </label>
-            <div v-if="nombreSucursal" class="flex items-center gap-2">
-              <p class="text-sm font-medium text-blue-600">{{ nombreSucursal }}</p>
-              <span class="badge badge-outline text-xs">{{ recibo.CodSucursal || recibo.codSucRecibo || recibo.CodSucRecibo }}</span>
+   
+         
+
+      <!-- Vista Previa WhatsApp -->
+      <div v-if="recibo" class="mt-6">
+        <!-- <label class="label">
+          <span class="label-text font-semibold">Vista Previa WhatsApp</span>
+        </label> -->
+        <div class="mockup-phone">
+          <div class="camera"></div>
+          <div class="display">
+            <div class="artboard artboard-demo phone-1 bg-green-50">
+              <!-- WhatsApp Header Mockup -->
+              <div class="bg-green-600 text-white p-3 rounded-t-lg">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
+                  <div>
+                    <div class="font-semibold text-sm">{{ recibo.Telefonos || 'Cliente' }}</div>
+                    <div class="text-xs opacity-80">en línea</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Message Bubble -->
+              <div class="p-3 bg-white">
+                <div class="chat chat-end">
+                  <div class="chat-bubble bg-green-500 text-white text-sm max-w-xs">
+                    {{ mensajeRecibo }}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div v-else-if="isLoading" class="flex items-center gap-2 text-blue-500">
-              <div class="loading loading-spinner loading-xs"></div>
-              <p class="text-sm">Cargando sucursales...</p>
-            </div>
-            <div v-else-if="recibo.CodSucursal || recibo.codSucRecibo || recibo.CodSucRecibo" class="text-orange-600">
-              <p class="text-sm">Código: {{ recibo.CodSucursal || recibo.codSucRecibo || recibo.CodSucRecibo }}</p>
-              <p class="text-xs text-gray-500">(Sucursal no encontrada)</p>
-            </div>
-            <p v-else class="text-sm text-gray-400">No disponible</p>
-          </div>
-          
-          <div>
-            <label class="label">
-              <span class="label-text font-semibold">Nombre Cliente:</span>
-            </label>
-            <p class="text-sm">{{ recibo.NombreCont }} {{ recibo.ApellidoCont }}</p>
-          </div>
-          <div>
-            <label class="label">
-              <span class="label-text font-semibold">Teléfonos:</span>
-            </label>
-            <p class="text-sm">{{ recibo.Telefonos }}</p>
           </div>
         </div>
       </div>
       
-      <div v-else class="text-center p-8 text-gray-500">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <p>Selecciona un recibo para ver sus detalles</p>
-      </div>
     </div>
+    
+   <!--  <div v-else class="text-center p-8 text-gray-500">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <p>Selecciona un recibo para ver sus detalles</p>
+    </div> -->
   </div>
 </template>
+
+<style scoped>
+.mockup-phone .display .artboard {
+  background: #f0fdf4;
+}
+
+.chat-bubble {
+  position: relative;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  max-width: 200px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.chat-end .chat-bubble {
+  background-color: #22c55e;
+  color: white;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.mockup-phone .camera {
+  background: #1f2937;
+}
+</style>
 
 <script setup lang="ts">
 import { computed, watchEffect } from 'vue';
@@ -136,6 +118,24 @@ const nombreSucursal = computed(() => {
   });
   
   return sucursal ? sucursal.NombreSuc : null;
+});
+
+// Computed para generar mensaje de WhatsApp del recibo
+const mensajeRecibo = computed(() => {
+  if (!props.recibo) return '';
+  
+  const sucursal = findSucursalById(props.recibo.CodSucursal || props.recibo.codSucRecibo || props.recibo.CodSucRecibo);
+  const nombreSucursal = sucursal ? sucursal.NombreSuc : 'SUCURSAL NO ENCONTRADA';
+  
+  return `Hola ${props.recibo.NombreCont || 'CLIENTE'}, su cuenta registra un Nuevo Pago.
+Documento: ${props.recibo.NroDoc || 'N/A'}
+Sucursal: ${nombreSucursal}
+Operación Nº: ${props.recibo.CodCredito || 'N/A'}
+Importe $: ${formatCurrency(props.recibo.MontoPagado)}
+Recibo Nº: ${props.recibo.CodReciboPr || 'N/A'}
+Fecha: ${formatDate(props.recibo.Fecha)}
+Recuerde que su crédito también puede abonarlo online y desde su hogar a través de Mercado Pago.
+Gracias por cumplir con la Empresa!`;
 });
 
 const formatDate = (dateString: string | null | undefined) => {

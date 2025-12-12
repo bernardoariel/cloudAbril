@@ -79,14 +79,14 @@ const pie = "Gracias por elegirnos ... que disfrute su Compra!";
 <template>
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
-      <h2 class="card-title">Detalle de Venta</h2>
+     <!--  <h2 class="card-title">Detalle de Venta</h2>
       <div class="form-control">
         <label class="label">
           <span class="label-text">Cuerpo</span>
         </label>
         <textarea class="textarea textarea-bordered h-16 text-xs " readonly>{{ cuerpo }}</textarea>
-      </div>
-      <div class="form-control">
+      </div> -->
+      <!-- <div class="form-control">
         <label class="label">
           <span class="label-text">Detalle</span>
         </label>
@@ -104,16 +104,73 @@ const pie = "Gracias por elegirnos ... que disfrute su Compra!";
       <div class="form-control mt-2">
         <label class="label">
           <!-- <span class="label-text">Detalle de Factura</span> -->
-        </label>
+        <!-- </label>
         
         <div v-if="errorDetalle" class="text-error py-2">
           Error al cargar el detalle de la factura
         </div>
         <div v-else-if="detalleFactura">
           <!-- <pre class="bg-base-200 rounded p-2 text-xs overflow-x-auto">{{ detalleFactura }}</pre> -->
-        </div>
+        <!-- </div>
         <div v-else class="text-gray-400 text-xs">Seleccione una venta para ver el detalle completo.</div>
+      </div>  -->
+
+      <!-- Vista Previa WhatsApp -->
+      <div v-if="venta" class="form-control mt-6">
+        <label class="label">
+          <!-- <span class="label-text font-semibold">Vista Previa WhatsApp</span> -->
+        </label>
+        <div class="mockup-phone">
+          <div class="camera"></div>
+          <div class="display">
+            <div class="artboard artboard-demo phone-1 bg-green-50">
+              <!-- WhatsApp Header Mockup -->
+              <div class="bg-green-600 text-white p-3 rounded-t-lg">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
+                  <div>
+                    <div class="font-semibold text-sm mt-5">{{ venta.Telefonos || 'Cliente' }}</div>
+                    <div class="text-xs opacity-80">en línea</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Message Bubble -->
+              <div class="p-3 bg-white">
+                <div class="chat chat-end">
+                  <div class="chat-bubble bg-green-500 text-white text-sm max-w-xs">
+                    {{ `${cuerpo}\n\n${detalle}\n\n${pie}` }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</template> 
+</template>
+
+<style scoped>
+.mockup-phone .display .artboard {
+  background: #f0fdf4;
+}
+
+.chat-bubble {
+  position: relative;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  max-width: 200px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.chat-end .chat-bubble {
+  background-color: #22c55e;
+  color: white;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.mockup-phone .camera {
+  background: #1f2937;
+}
+</style> 
