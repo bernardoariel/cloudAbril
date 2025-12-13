@@ -7,6 +7,10 @@ nginx/
 portal/
 ws/
 
+# Exclude production and QA server directories
+server-abril-prod/
+server-abril-qa/
+
 # SSL certificates and acme.sh data
 nginx/acme.sh/
 

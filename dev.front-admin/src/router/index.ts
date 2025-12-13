@@ -13,6 +13,9 @@ import PersonalizadoWsView from '@/views/PersonalizadoWsView.vue';
 import ClientesMoraWsView from '@/views/clientesMoraWsView.vue';
 import WhatsAppHistorialView from '@/views/WhatsAppHistorialView.vue';
 import WhatsAppPersonalizadoView from '@/views/WhatsAppPersonalizadoView.vue';
+import PrivacyPolicyView from '@/views/PrivacyPolicyView.vue';
+import TermsView from '@/views/TermsView.vue';
+import DataDeletionView from '@/views/DataDeletionView.vue';
 
 // Función para decodificar un JWT
 export function parseJwt(token: string) {
@@ -57,6 +60,25 @@ const routes = [
     path: '/login',
     name: 'login',
     component: LoginView,
+    meta: { requiresAuth: false },
+  },
+  // Rutas públicas requeridas por Meta/WhatsApp
+  {
+    path: '/privacy-policy',
+    name: 'privacyPolicy',
+    component: PrivacyPolicyView,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/terms',
+    name: 'terms',
+    component: TermsView,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/data-deletion',
+    name: 'dataDeletion',
+    component: DataDeletionView,
     meta: { requiresAuth: false },
   },
   {
