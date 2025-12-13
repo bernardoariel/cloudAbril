@@ -470,6 +470,20 @@ async function sendWhatsApp() {
 
     // 2) Enviar uno por uno
     for (const r of recibosSeleccionados) {
+      // Construir nombre completo (fuera del try para que esté disponible en catch)
+      const apellido = r.ApellidoCont || '';
+      const nombre = r.NombreCont || r.nombreCont || '';
+      let nombreCompleto = '';
+      if (apellido && nombre) {
+        nombreCompleto = `${apellido}, ${nombre}`;
+      } else if (apellido) {
+        nombreCompleto = apellido;
+      } else if (nombre) {
+        nombreCompleto = nombre;
+      } else {
+        nombreCompleto = 'CLIENTE';
+      }
+
       try {
         let telefono = normalizePhone(r.Telefonos || r.telefonos || '');
         if (!telefono) throw new Error('Teléfono inválido');
@@ -500,7 +514,7 @@ async function sendWhatsApp() {
 
         const payload: AvisoPagoPayload = {
           to: telefono,
-          nombre: r.NombreCont || r.nombreCont || '',
+          nombre: nombreCompleto,
           nro_operacion: String(r.codCredito || r.CodCredito || ''),
           nro_recibo: String(r.CodReciboPr || r.codReciboPr || ''),
           fecha: new Date(r.Fecha).toLocaleDateString('es-AR'),
@@ -518,7 +532,7 @@ async function sendWhatsApp() {
           sourceId: nroRecibo,
           externalClientId: String(r.NroDoc || r.nroDoc || r.CodReciboPr || r.codReciboPr),
           telefono: telefono,
-          nombre: r.NombreCont || r.nombreCont || '',
+          nombre: nombreCompleto,
           payloadSnapshot: {
             nro_operacion: String(r.codCredito || r.CodCredito || ''),
             sucursal: nombreSucursal,
@@ -531,7 +545,7 @@ async function sendWhatsApp() {
         await sleep(350);
       } catch (e: any) {
         fail.push({
-          nombre: r.NombreCont || r.nombreCont,
+          nombre: nombreCompleto || r.NombreCont || r.nombreCont || 'CLIENTE',
           motivo: e?.message ?? 'Error desconocido',
         });
       }

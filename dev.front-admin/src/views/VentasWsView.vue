@@ -124,9 +124,7 @@
               </div>
               <DateRangeFilter @filter-applied="handleFilterUpdate" />
               <!-- Botón Enviar WhatsApp -->
-              <button class="btn btn-success" @click="openWhatsModal">
-                Enviar WhatsApp
-              </button>
+              <button class="btn btn-success" @click="openWhatsModal">Enviar WhatsApp</button>
             </div>
           </div>
 
@@ -207,9 +205,7 @@
       <div class="mb-4">
         <div class="font-semibold">Información del envío:</div>
         <div class="bg-base-200 p-3 rounded text-sm">
-          <p>
-            <strong>Registros seleccionados:</strong> {{ seleccionablesSeleccionados }}
-          </p>
+          <p><strong>Registros seleccionados:</strong> {{ seleccionablesSeleccionados }}</p>
           <p><strong>Se enviará al primer registro con teléfono válido</strong></p>
           <p class="text-xs text-gray-600 mt-2">
             Template: aviso_compra<br />
@@ -233,14 +229,9 @@
           @click="sendWhatsApp"
           :disabled="isSendingWhatsApp || seleccionablesSeleccionados === 0"
         >
-          <span
-            v-if="isSendingWhatsApp"
-            class="loading loading-spinner loading-sm"
-          ></span>
+          <span v-if="isSendingWhatsApp" class="loading loading-spinner loading-sm"></span>
           {{
-            isSendingWhatsApp
-              ? "Enviando..."
-              : `Enviar WhatsApp (${seleccionablesSeleccionados})`
+            isSendingWhatsApp ? 'Enviando...' : `Enviar WhatsApp (${seleccionablesSeleccionados})`
           }}
         </button>
       </div>
@@ -251,7 +242,7 @@
   <dialog id="mensajeDetalleModal" class="modal" :open="modalMensajeOpen">
     <form method="dialog" class="modal-box max-w-2xl">
       <h3 class="font-bold text-lg mb-4">📱 Detalle del Mensaje WhatsApp</h3>
-      
+
       <div v-if="mensajeDetalle" class="space-y-3">
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -274,7 +265,11 @@
         <div>
           <p class="text-sm font-semibold text-gray-600">Teléfono:</p>
           <p>
-            <a :href="`https://wa.me/${mensajeDetalle.telefono}`" target="_blank" class="link link-primary">
+            <a
+              :href="`https://wa.me/${mensajeDetalle.telefono}`"
+              target="_blank"
+              class="link link-primary"
+            >
               {{ mensajeDetalle.telefono }}
             </a>
           </p>
@@ -301,22 +296,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from "vue";
-import DateRangeFilter from "@/components/DateRangeFilter.vue";
-import DataTable from "@/components/DataTable.vue";
-import PaginationControl from "@/components/PaginationControl.vue";
-import VentaDetailCard from "@/components/VentaDetailCard.vue";
-import WhatsAppTabs from "@/components/WhatsAppTabs.vue";
-import { useVentas } from "../composables/useVentas";
-import type { Venta } from "../interfaces/Venta";
-import { useDetalleFactura } from "@/composables/useDetalleFactura";
-import { useSucursales } from "@/modules/sqlserver/sucursales/composable/useSucursales";
-import { useWhatsAppHistory } from "@/composables/useWhatsAppHistory";
+import { ref, watch, computed, onMounted } from 'vue';
+import DateRangeFilter from '@/components/DateRangeFilter.vue';
+import DataTable from '@/components/DataTable.vue';
+import PaginationControl from '@/components/PaginationControl.vue';
+import VentaDetailCard from '@/components/VentaDetailCard.vue';
+import WhatsAppTabs from '@/components/WhatsAppTabs.vue';
+import { useVentas } from '../composables/useVentas';
+import type { Venta } from '../interfaces/Venta';
+import { useDetalleFactura } from '@/composables/useDetalleFactura';
+import { useSucursales } from '@/modules/sqlserver/sucursales/composable/useSucursales';
+import { useWhatsAppHistory } from '@/composables/useWhatsAppHistory';
 import { whatsappService } from '../services/whatsappService';
 import { normalizePhone } from '../common/helpers/normalizePhone';
 import { sleep } from '../common/helpers/sleep';
 
-const WHATSAPP_BASE_URL = import.meta.env.VITE_WHATSAPP_BASE_URL
+const WHATSAPP_BASE_URL = import.meta.env.VITE_WHATSAPP_BASE_URL;
 const {
   isLoading,
   error,
@@ -374,11 +369,11 @@ const cerrarModalMensaje = () => {
 };
 
 // Buscador de sucursales
-const textoBusquedaSucursal = ref("");
+const textoBusquedaSucursal = ref('');
 const sucursalesFiltradas = computed(() => {
   if (!textoBusquedaSucursal.value) return sucursales.value;
   return sucursales.value.filter((s) =>
-    s.NombreSuc.toLowerCase().includes(textoBusquedaSucursal.value.toLowerCase())
+    s.NombreSuc.toLowerCase().includes(textoBusquedaSucursal.value.toLowerCase()),
   );
 });
 
@@ -391,7 +386,7 @@ const toggleSucursalesFiltro = () => {
 const selectedVenta = ref<Venta | null>(null);
 const selectedVentaKey = computed(() => selectedVenta.value?.venta_CodVenta || null);
 
-const activeFilterLabel = ref("");
+const activeFilterLabel = ref('');
 
 const handleFilterUpdate = (filter: { from: string; to: string; label: string }) => {
   activeFilterLabel.value = filter.label;
@@ -422,15 +417,14 @@ const toggleTodasSucursales = () => {
 };
 const todasSeleccionadas = computed(
   () =>
-    sucursales.value.length > 0 &&
-    sucursalesSeleccionadas.value.length === sucursales.value.length
+    sucursales.value.length > 0 && sucursalesSeleccionadas.value.length === sucursales.value.length,
 );
 
 // Computada para filtrar por sucursales seleccionadas
 const ventasFiltradasPorSucursal = computed(() => {
   if (!sucursalesSeleccionadas.value.length) return filteredVentas.value;
   return filteredVentas.value.filter((venta: any) =>
-    sucursalesSeleccionadas.value.includes(venta.CodSucursal)
+    sucursalesSeleccionadas.value.includes(venta.CodSucursal),
   );
 });
 
@@ -440,12 +434,10 @@ const paginatedVentasSucursal = computed(() => {
   return ventasFiltradasPorSucursal.value.slice(start, start + 7);
 });
 
-const totalPagesSucursal = computed(() =>
-  Math.ceil(ventasFiltradasPorSucursal.value.length / 8)
-);
+const totalPagesSucursal = computed(() => Math.ceil(ventasFiltradasPorSucursal.value.length / 8));
 const recordsInfoSucursal = computed(() => {
   const total = ventasFiltradasPorSucursal.value.length;
-  if (total === 0) return "";
+  if (total === 0) return '';
   const start = (currentPage.value - 1) * 8 + 1;
   const end = start + paginatedVentasSucursal.value.length - 1;
   return `Mostrando ${start} - ${end} de ${total} registros`;
@@ -455,7 +447,7 @@ const recordsInfoSucursal = computed(() => {
 const seleccionablesSeleccionados = computed(() => {
   return ventasFiltradasPorSucursal.value.filter((item: any) => {
     const telefono = item.Telefonos;
-    const digitsOnly = telefono ? telefono.replace(/\D/g, "") : "";
+    const digitsOnly = telefono ? telefono.replace(/\D/g, '') : '';
     const telefonoValido = digitsOnly.length >= 10;
     return telefonoValido && selectedKeys.value.has(item.venta_CodVenta);
   }).length;
@@ -463,7 +455,7 @@ const seleccionablesSeleccionados = computed(() => {
 
 const isWhatsModalOpen = ref(false);
 const isSendingWhatsApp = ref(false);
-const whatsAppMessage = ref("");
+const whatsAppMessage = ref('');
 
 function openWhatsModal() {
   isWhatsModalOpen.value = true;
@@ -483,16 +475,16 @@ type AvisoCompraPayload = {
 
 async function sendWhatsApp() {
   isSendingWhatsApp.value = true;
-  whatsAppMessage.value = "";
+  whatsAppMessage.value = '';
 
   try {
     const ventasSeleccionadas = ventasFiltradasPorSucursal.value.filter((item: any) => {
-      const t = (item.Telefonos ?? "").replace(/\D/g, "");
+      const t = (item.Telefonos ?? '').replace(/\D/g, '');
       return t.length >= 10 && selectedKeys.value.has(item.venta_CodVenta);
     });
 
     if (ventasSeleccionadas.length === 0) {
-      whatsAppMessage.value = "No hay registros seleccionados con teléfonos válidos";
+      whatsAppMessage.value = 'No hay registros seleccionados con teléfonos válidos';
       return;
     }
 
@@ -500,49 +492,65 @@ async function sendWhatsApp() {
     const fail: { nombre: string; motivo: string }[] = [];
 
     for (const v of ventasSeleccionadas) {
+      // Construir nombre completo (fuera del try para que esté disponible en catch)
+      const apellido = v.ApellidoCont || '';
+      const nombre = v.NombreCont || '';
+      let nombreCompleto = '';
+      if (apellido && nombre) {
+        nombreCompleto = `${apellido}, ${nombre}`;
+      } else if (apellido) {
+        nombreCompleto = apellido;
+      } else if (nombre) {
+        nombreCompleto = nombre;
+      } else {
+        nombreCompleto = 'CLIENTE';
+      }
+
       try {
-        const telefono = normalizePhone(v.Telefonos ?? "");
-        if (!telefono) throw new Error("Teléfono inválido");
+        const telefono = normalizePhone(v.Telefonos ?? '');
+        if (!telefono) throw new Error('Teléfono inválido');
 
         await fetchDetalle(v.venta_CodVenta);
 
-        let productosLista = "-";
+        let productosLista = '-';
         if (detalle.value?.detalles?.length) {
           productosLista = detalle.value.detalles
             .filter((d: any) => d.CodProducto >= 1000)
             .map((d: any) => `${d.Cantidad} - ${d.NombreProducto}`)
-            .join(",");
+            .join(',');
         }
 
-        let metodosLista = "-";
+        let metodosLista = '-';
         if (metodosPago.value?.length) {
           metodosLista = metodosPago.value
             .map((m: any) => {
               const label = m.CodForPago;
-              
+
               // Solo para métodos que contienen CREDITO y tienen cuotas
               if (String(label).includes('CREDITO') && m.CantCuotas && m.CantCuotas > 1) {
                 const montoPorCuota = m.Importe / m.CantCuotas;
-                return `${label} ${m.CantCuotas} cuotas de $${Number(montoPorCuota).toLocaleString("es-AR")} ($${Number(m.Importe ?? 0).toLocaleString("es-AR")})`;
+                return `${label} ${m.CantCuotas} cuotas de $${Number(montoPorCuota).toLocaleString(
+                  'es-AR',
+                )} ($${Number(m.Importe ?? 0).toLocaleString('es-AR')})`;
               } else {
-                return `${label} $${Number(m.Importe ?? 0).toLocaleString("es-AR")}`;
+                return `${label} $${Number(m.Importe ?? 0).toLocaleString('es-AR')}`;
               }
             })
-            .join(",");
+            .join(',');
         }
 
         const payload: AvisoCompraPayload = {
           to: telefono,
-          nombre: v.Nombre,
+          nombre: nombreCompleto,
           cod_venta: String(v.venta_CodVenta),
-          fecha_compra: new Date(v.venta_Fecha).toLocaleDateString("es-AR"),
-          documento: String(v.NroDoc ?? ""),
+          fecha_compra: new Date(v.venta_Fecha).toLocaleDateString('es-AR'),
+          documento: String(v.NroDoc ?? ''),
           product_list: productosLista,
           pago_list: metodosLista,
         };
 
         const response = await whatsappService.sendAvisoCompra(payload);
-        
+
         // 📱 Guardar en historial BD
         await agregarMensaje({
           tipo: 'aviso_compra',
@@ -550,19 +558,22 @@ async function sendWhatsApp() {
           sourceId: String(v.venta_CodVenta),
           externalClientId: String(v.NroDoc ?? v.venta_CodVenta),
           telefono: telefono,
-          nombre: v.Nombre,
+          nombre: nombreCompleto,
           payloadSnapshot: {
             productos: productosLista,
             metodosPago: metodosLista,
-            total: detalle.value?.total || 0
+            total: detalle.value?.total || 0,
           },
-          response: response
+          response: response,
         });
 
         ok.push(`${v.Nombre} (${telefono})`);
         await sleep(350);
       } catch (e: any) {
-        fail.push({ nombre: v.Nombre, motivo: e?.message ?? "Error desconocido" });
+        fail.push({
+          nombre: nombreCompleto || v.Nombre || 'CLIENTE',
+          motivo: e?.message ?? 'Error desconocido',
+        });
       }
     }
 
@@ -572,23 +583,25 @@ async function sendWhatsApp() {
 
     whatsAppMessage.value =
       `Enviados ${enviados}/${total}.` +
-      (ok.length ? ` ✅ OK: ${ok.join(" | ")}.` : "") +
-      (fail.length ? ` ❌ Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(" | ")}.` : "");
+      (ok.length ? ` ✅ OK: ${ok.join(' | ')}.` : '') +
+      (fail.length
+        ? ` ❌ Errores: ${fail.map((f) => `${f.nombre} (${f.motivo})`).join(' | ')}.`
+        : '');
 
     if (errores === 0) {
       // Recargar historial después de enviar exitosamente
       await cargarHistorial({ tipo: 'aviso_compra' });
-      setTimeout(() => { closeWhatsModal(); whatsAppMessage.value = ""; }, 1500);
+      setTimeout(() => {
+        closeWhatsModal();
+        whatsAppMessage.value = '';
+      }, 1500);
     }
   } catch (err: any) {
-    whatsAppMessage.value = `Error general: ${err?.message ?? "desconocido"}`;
+    whatsAppMessage.value = `Error general: ${err?.message ?? 'desconocido'}`;
   } finally {
     isSendingWhatsApp.value = false;
   }
 }
-
-
-
 </script>
 
 <style>
