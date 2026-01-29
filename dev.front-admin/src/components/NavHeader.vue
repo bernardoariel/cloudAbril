@@ -12,7 +12,15 @@
       Limpiar
     </button>
 
-    <h1 class="text-xl font-bold text-center flex-grow text-primary-content">{{ title }}</h1>
+    <h1 class="text-xl font-bold text-center flex-grow text-primary-content flex items-center justify-center gap-3">
+      {{ title }}
+      <!-- Badge del modo (solo se muestra si no es producción) -->
+      <span v-if="currentMode && currentMode !== 'produccion'" 
+            :class="modeBadgeClass"
+            class="px-2 py-1 text-xs font-medium rounded-full">
+        {{ currentMode.toUpperCase() }}
+      </span>
+    </h1>
 
     <!-- Botón de Elipsis con Dropdown -->
     <div class="relative inline-block text-left" ref="dropdownRef">
@@ -139,6 +147,21 @@ const closeDropdownOnClickOutside = (event: Event) => {
 // Lista de emails de administradores
 const administradoresEmails = ['mario@abrilamoblamientos.com.ar'];
 const isAdmin = computed(() => administradoresEmails.includes(authStore.user));
+
+// Obtener el modo actual desde las variables de entorno
+const currentMode = ref(import.meta.env.VITE_MODE || '');
+
+// Clases para el badge del modo
+const modeBadgeClass = computed(() => {
+  switch (currentMode.value) {
+    case 'local':
+      return 'bg-blue-500 text-white';
+    case 'qa':
+      return 'bg-yellow-500 text-black';
+    default:
+      return 'bg-gray-500 text-white';
+  }
+});
 
 // Mostrar el botón de "Volver" basado en la ruta
 const showBackButton = computed(() => {
