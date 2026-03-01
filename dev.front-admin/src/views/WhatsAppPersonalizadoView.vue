@@ -331,8 +331,8 @@ const sendMessage = async () => {
     // Extraer solo el número sin formato para el endpoint
     const cleanPhone = phoneNumber.value.replace(/\D/g, '');
 
-    // Llamar al endpoint sendHelloWorld
-    await whatsappService.sendHelloWorld(cleanPhone);
+    // Llamar al endpoint de WhatsApp Hola Abril
+    await whatsappService.sendHolaAbril(cleanPhone);
 
     // Agregar al historial
     recentSends.value.unshift({

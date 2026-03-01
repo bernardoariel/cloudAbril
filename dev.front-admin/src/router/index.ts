@@ -13,6 +13,7 @@ import PersonalizadoWsView from '@/views/PersonalizadoWsView.vue';
 import ClientesMoraWsView from '@/views/clientesMoraWsView.vue';
 import WhatsAppHistorialView from '@/views/WhatsAppHistorialView.vue';
 import WhatsAppPersonalizadoView from '@/views/WhatsAppPersonalizadoView.vue';
+import WsWebhookMessagesView from '@/views/WsWebhookMessages.vue';
 import PrivacyPolicyView from '@/views/PrivacyPolicyView.vue';
 import TermsView from '@/views/TermsView.vue';
 import DataDeletionView from '@/views/DataDeletionView.vue';
@@ -144,6 +145,12 @@ const routes = [
         name: 'whatsappPersonalizado',
         component: WhatsAppPersonalizadoView,
         meta: { title: 'Mensajes Personalizados', requiresAuth: false },
+      },
+      {
+        path: '/whatsapp/webhook',
+        name: 'whatsappWebhook',
+        component: WsWebhookMessagesView,
+        meta: { title: 'Webhook WhatsApp', requiresAuth: false },
       },
     ],
   },

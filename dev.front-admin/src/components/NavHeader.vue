@@ -20,6 +20,32 @@
             class="px-2 py-1 text-xs font-medium rounded-full">
         {{ currentMode.toUpperCase() }}
       </span>
+      
+      <!-- Campanita de notificaciones de WhatsApp (solo para admin) -->
+      <div v-if="isAdmin" class="relative cursor-pointer" @click="goToWhatsappMessages">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          class="h-6 w-6 text-primary-content hover:text-warning transition-colors" 
+          :class="{ 'animate-pulse': hasNewMessages }"
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" 
+          />
+        </svg>
+        <!-- Badge con el número de mensajes no leídos -->
+        <span 
+          v-if="hasNewMessages"
+          class="absolute -top-2 -right-2 bg-error text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce"
+        >
+          {{ unreadCount > 99 ? '99+' : unreadCount }}
+        </span>
+      </div>
     </h1>
 
     <!-- Botón de Elipsis con Dropdown -->
@@ -116,11 +142,13 @@ import { useAuthStore } from '../store/useAuth';
 import { ejecutarTarea } from '../modules/Auth/services/actions';
 import ThemeSwitcher from './ThemeSwitcher.vue';
 import { useTheme } from '../composables/useTheme';
+import { useWhatsappNotifications } from '../composables/useWhatsappNotifications';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const { currentTheme } = useTheme();
+const { unreadCount, hasNewMessages, isAdmin, markAsRead } = useWhatsappNotifications();
 
 // Debug info
 const domTheme = ref('');
@@ -144,9 +172,6 @@ const closeDropdownOnClickOutside = (event: Event) => {
     isDropdownOpen.value = false;
   }
 };
-// Lista de emails de administradores
-const administradoresEmails = ['mario@abrilamoblamientos.com.ar'];
-const isAdmin = computed(() => administradoresEmails.includes(authStore.user));
 
 // Obtener el modo actual desde las variables de entorno
 const currentMode = ref(import.meta.env.VITE_MODE || '');
@@ -253,5 +278,11 @@ watch(currentTheme, () => {
 // Función para limpiar las queries
 const clearQuery = () => {
   router.replace({ name: route.name, query: {} }); // Limpia las queries de la URL
+};
+
+// Función para navegar a los mensajes de WhatsApp
+const goToWhatsappMessages = () => {
+  markAsRead();
+  router.push({ name: 'whatsappWebhook' });
 };
 </script>

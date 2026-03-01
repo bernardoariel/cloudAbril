@@ -401,8 +401,9 @@ async function sendWhatsApp() {
       telefono = "54" + telefono;
     }
 
-    const telefonoPrueba = "543704299434";
-    telefono = telefonoPrueba;
+    // Se hace para poder gestionar el nuevo
+    // const telefonoPrueba = "543704299434";
+    // telefono = telefonoPrueba;
 
     const sucursal = sucursales.value.find(
       (s) => s.CodSucursal === primerRecibo.codSucRecibo

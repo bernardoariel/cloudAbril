@@ -1,0 +1,16 @@
+{
+  "name": "cloudabril-workspace",
+  "version": "1.0.0",
+  "description": "Workspace para iniciar todos los servicios de cloudAbril",
+  "private": true,
+  "scripts": {
+    "dev:abril": "powershell -ExecutionPolicy Bypass -File ./start-all-services.ps1",
+    "build:all": "powershell -ExecutionPolicy Bypass -File ./build-and-deploy-prod.ps1",
+    "build:prod": "powershell -ExecutionPolicy Bypass -File ./build-and-deploy-prod.ps1",
+    "build:frontend": "powershell -ExecutionPolicy Bypass -File ./build-and-deploy-prod.ps1 -SkipBackend -SkipWs",
+    "build:backend": "powershell -ExecutionPolicy Bypass -File ./build-and-deploy-prod.ps1 -SkipFrontend -SkipWs",
+    "build:ws": "powershell -ExecutionPolicy Bypass -File ./build-and-deploy-prod.ps1 -SkipFrontend -SkipBackend"
+  },
+  "author": "",
+  "license": "ISC"
+}

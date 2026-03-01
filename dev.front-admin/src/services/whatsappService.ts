@@ -30,8 +30,9 @@ class WhatsappService {
     return this.post(`${this.baseUrl}/whatsapp/aviso_pago_abril`, data);
   }
 
-  async sendHelloWorld(to: string) {
-    return this.post(`${this.baseUrl}/whatsapp/hello_world`, { to });
+  async sendHolaAbril(to: string) {
+    console.log({to})
+    return this.post(`${this.baseUrl}/whatsapp/hola_abril`, { to });
   }
 
   private async post(url: string, data: any) {

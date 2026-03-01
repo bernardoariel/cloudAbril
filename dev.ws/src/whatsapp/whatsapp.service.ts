@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class WhatsAppService {
+  private readonly logger = new Logger(WhatsAppService.name);
   private readonly token: string;
   private readonly phoneNumberId: string;
   private readonly apiVersion: string;
@@ -17,8 +18,45 @@ export class WhatsAppService {
   ) {
     this.token = this.config.get<string>('WHATSAPP_TOKEN')!;
     this.phoneNumberId = this.config.get<string>('WHATSAPP_PHONE_ID')!;
-    this.apiVersion = this.config.get<string>('WHATSAPP_API_VERSION', 'v22.0');
-    this.baseUrl = `https://graph.facebook.com/v22.0/${this.phoneNumberId}/messages`;
+    this.apiVersion = this.config.get<string>('WHATSAPP_API_VERSION', 'v24.0');
+    this.baseUrl = `https://graph.facebook.com/${this.apiVersion}/${this.phoneNumberId}/messages`;
+  }
+
+  /**
+   * Enviar mensaje de texto libre a un número
+   * NOTA: Solo funciona dentro de la ventana de 24 horas (el usuario debe haber enviado un mensaje primero)
+   */
+  async sendTextMessage(to: string, text: string): Promise<any> {
+    const payload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to,
+      type: 'text',
+      text: {
+        preview_url: false,
+        body: text,
+      },
+    };
+
+    this.logger.log(`Sending text message to ${to}: "${text.substring(0, 50)}..."`);
+
+    try {
+      const { data } = await firstValueFrom(
+        this.http.post(this.baseUrl, payload, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+      this.logger.log(`Message sent successfully to ${to}, message_id: ${data?.messages?.[0]?.id}`);
+      return data;
+    } catch (err: any) {
+      const res = err?.response?.data ?? err?.message ?? 'Unknown error';
+      const status = err?.response?.status ?? 500;
+      this.logger.error(`Failed to send text message to ${to}: ${JSON.stringify(res)}`);
+      throw new HttpException(res, status);
+    }
   }
 
   async sendTemplate(dto: {
@@ -31,6 +69,13 @@ export class WhatsAppService {
       type: 'template',
       template: dto.template, // acepta NAMED parameters
     };
+    console.log('Sending WhatsApp Template:', JSON.stringify(payload, null, 2));
+    console.log('Target URL:', this.baseUrl);
+    console.log('ENV Config:', {
+      WHATSAPP_PHONE_ID: this.phoneNumberId,
+      WHATSAPP_TOKEN_PREFIX: this.token ? this.token.substring(0, 15) + '...' : 'MISSING',
+      WHATSAPP_API_VERSION: this.apiVersion,
+    });
     try {
       const { data } = await firstValueFrom(
         this.http.post(this.baseUrl, payload, {
@@ -54,10 +99,18 @@ export class WhatsAppService {
       to,
       type: 'template',
       template: {
-        name: 'hello_world',
-        language: { code: 'en_US' },
+        name: 'hola_abril',
+        language: { code: 'es_AR' },
       },
     };
+
+    console.log('Sending WhatsApp Hola Abril:', JSON.stringify(payload, null, 2));
+    console.log('Target URL:', this.baseUrl);
+    console.log('ENV Config:', {
+      WHATSAPP_PHONE_ID: this.phoneNumberId,
+      WHATSAPP_TOKEN_PREFIX: this.token ? this.token.substring(0, 15) + '...' : 'MISSING',
+      WHATSAPP_API_VERSION: this.apiVersion,
+    });
 
     try {
       const { data } = await firstValueFrom(

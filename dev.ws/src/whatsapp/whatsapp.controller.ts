@@ -1,17 +1,25 @@
-import { Controller, Post, Body, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Post, Body, UsePipes, ValidationPipe, Get, Query, Req, Res, HttpStatus, Logger } from '@nestjs/common';
+import { Request, Response } from 'express';
 
 import { AvisoCompraDto } from './dto/aviso-compra.dto';
 import { AvisoPagoDto } from './dto/aviso-pago.dto';
 import { WhatsAppService } from './whatsapp.service';
+import { WebhookService } from './webhook.service';
+import { WhatsAppWebhookDto } from './dto/webhook.dto';
 
 @Controller('whatsapp')
 export class WhatsAppController {
-  constructor(private readonly wsService: WhatsAppService) { }
+  private readonly logger = new Logger(WhatsAppController.name);
+
+  constructor(
+    private readonly wsService: WhatsAppService,
+    private readonly webhookService: WebhookService,
+  ) { }
 
   @Post('aviso_compra_abril')
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
   async sendAvisoCompra(@Body() b: AvisoCompraDto) {
-    return this.wsService.sendTemplate({
+    const result = await this.wsService.sendTemplate({
       to: b.to,
       template: {
         name: 'aviso_compra_abril',
@@ -31,12 +39,19 @@ export class WhatsAppController {
         ],
       },
     });
+
+    // Guardar mensaje saliente para que aparezca en eventos
+    const messageId = result?.messages?.[0]?.id;
+    const textoResumen = `[Template: aviso_compra_abril] Nombre: ${b.nombre}, Venta: ${b.cod_venta}, Productos: ${b.product_list}`;
+    await this.webhookService.saveOutgoingMessage(b.to, textoResumen, messageId, b.nombre);
+
+    return result;
   }
 
   @Post('aviso_pago_abril')
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
   async sendAvisoPago(@Body() b: AvisoPagoDto) {
-    return this.wsService.sendTemplate({
+    const result = await this.wsService.sendTemplate({
       to: b.to,
       template: {
         name: 'aviso_pago_abril',
@@ -57,10 +72,147 @@ export class WhatsAppController {
         ],
       },
     });
+
+    // Guardar mensaje saliente para que aparezca en eventos
+    const messageId = result?.messages?.[0]?.id;
+    const textoResumen = `[Template: aviso_pago_abril] Nombre: ${b.nombre}, Recibo: ${b.nro_recibo}, Importe: ${b.importe}`;
+    await this.webhookService.saveOutgoingMessage(b.to, textoResumen, messageId, b.nombre);
+
+    return result;
   }
 
-  @Post('hello_world')
+  @Post('hola_abril')
   async sendHelloWorld(@Body('to') to: string) {
+    const result = await this.wsService.sendHelloWorld(to);
+
+    // Guardar mensaje saliente
+    const messageId = result?.messages?.[0]?.id;
+    await this.webhookService.saveOutgoingMessage(to, '[Template: hola_abril] Mensaje de bienvenida', messageId);
+
+    return result;
+  }
+
+  /**
+   * Endpoint para responder un mensaje de texto libre
+   * Solo funciona dentro de la ventana de 24hs del último mensaje del usuario
+   */
+  @Post('reply')
+  async replyMessage(@Body() body: { to: string; text: string }) {
+    if (!body.to || !body.text) {
+      return { error: 'Se requiere "to" (teléfono) y "text" (mensaje)' };
+    }
+    this.logger.log(`Replying to ${body.to}: "${body.text.substring(0, 50)}"`);
+    
+    // Enviar el mensaje
+    const result = await this.wsService.sendTextMessage(body.to, body.text);
+    
+    // Guardar en el historial
+    const messageId = result?.messages?.[0]?.id;
+    await this.webhookService.saveOutgoingMessage(body.to, body.text, messageId);
+    
+    return result;
+  }
+
+  @Get('hello_world')
+  async getHelloWorld(@Query('to') to: string) {
     return this.wsService.sendHelloWorld(to);
+  }
+
+  /**
+   * Webhook verification endpoint (GET)
+   * WhatsApp enviará una solicitud GET para verificar el webhook
+   */
+  @Get('webhook')
+  async verifyWebhook(@Req() req: Request, @Res() res: Response) {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    this.logger.log(`Webhook verification request: mode=${mode}, token=${token}`);
+
+    // Verificar el token (configúralo en tus variables de entorno)
+    const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'mi_token_secreto_abril_2024';
+
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      this.logger.log('Webhook verified successfully');
+      return res.status(HttpStatus.OK).send(challenge);
+    } else {
+      this.logger.warn('Webhook verification failed');
+      return res.status(HttpStatus.FORBIDDEN).send('Forbidden');
+    }
+  }
+
+  /**
+   * Webhook endpoint para recibir eventos de WhatsApp (POST)
+   */
+  @Post('webhook')
+  async receiveWebhook(@Body() body: WhatsAppWebhookDto, @Res() res: Response) {
+    this.logger.log('Received webhook event');
+    this.logger.debug(JSON.stringify(body, null, 2));
+
+    try {
+      // Procesar el webhook de forma asíncrona
+      this.webhookService.processWebhook(body).catch((error) => {
+        this.logger.error(`Error processing webhook: ${error.message}`, error.stack);
+      });
+
+      // Responder inmediatamente a WhatsApp
+      return res.status(HttpStatus.OK).json({ status: 'received' });
+    } catch (error) {
+      this.logger.error(`Error handling webhook: ${error.message}`, error.stack);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Internal server error' });
+    }
+  }
+
+  /**
+   * Endpoint para consultar mensajes entrantes
+   */
+  @Get('incoming-messages')
+  async getIncomingMessages(
+    @Query('page') page = '1',
+    @Query('limit') limit = '50',
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.webhookService.getIncomingMessages(
+      parseInt(page, 10),
+      parseInt(limit, 10),
+      from,
+      to,
+    );
+  }
+
+  /**
+   * Endpoint para consultar mensajes por teléfono
+   */
+  @Get('incoming-messages/by-phone')
+  async getMessagesByPhone(@Query('phone') phone: string) {
+    return this.webhookService.getMessagesByPhone(phone);
+  }
+
+  /**
+   * Endpoint para consultar eventos del webhook
+   */
+  @Get('webhook-events')
+  async getWebhookEvents(
+    @Query('page') page = '1',
+    @Query('limit') limit = '50',
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.webhookService.getWebhookEvents(
+      parseInt(page, 10),
+      parseInt(limit, 10),
+      from,
+      to,
+    );
+  }
+
+  /**
+   * Endpoint para obtener estadísticas
+   */
+  @Get('stats')
+  async getStats() {
+    return this.webhookService.getStats();
   }
 }
