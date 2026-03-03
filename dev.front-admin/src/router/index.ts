@@ -7,6 +7,9 @@ import NotFoundView from '@/views/NotFoundView.vue';
 import ProductView from '@/views/ProductView.vue';
 import ProductPrice from '@/views/ProductPrice.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import PublicLayout from '@/layouts/PublicLayout.vue';
+import PublicHomeView from '@/views/PublicHomeView.vue';
+import PublicProductDetail from '@/views/PublicProductDetail.vue';
 import VentasWsView from '@/views/VentasWsView.vue';
 import PagosWsView from '@/views/PagosWsView.vue';
 import PersonalizadoWsView from '@/views/PersonalizadoWsView.vue';
@@ -156,7 +159,21 @@ const routes = [
   },
   {
     path: '/',
-    redirect: '/login',
+    component: PublicLayout,
+    children: [
+      {
+        path: '',
+        name: 'publicHome',
+        component: PublicHomeView,
+        meta: { title: 'Inicio Público', requiresAuth: false },
+      },
+      {
+        path: 'public-product/:id',
+        name: 'publicProductDetail',
+        component: PublicProductDetail,
+        meta: { title: 'Detalle del Producto', requiresAuth: false },
+      }
+    ]
   },
   {
     path: '/:pathMatch(.*)*',
