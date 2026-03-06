@@ -2,7 +2,7 @@
   <div class="card bg-base-100 shadow-xl mb-96">
     <div class="card-body p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="card-title text-base">📡 Webhook WhatsApp</h3>
+        <h3 class="card-title text-base">� Mensajes WhatsApp</h3>
         <router-link to="/whatsapp/webhook" class="btn btn-ghost btn-xs">
           Ver todo →
         </router-link>

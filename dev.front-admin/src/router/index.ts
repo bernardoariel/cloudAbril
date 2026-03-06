@@ -154,7 +154,7 @@ const routes = [
         path: '/whatsapp/webhook',
         name: 'whatsappWebhook',
         component: WsWebhookMessagesView,
-        meta: { title: 'Webhook WhatsApp', requiresAuth: false },
+        meta: { title: 'Mensajes WhatsApp', requiresAuth: false },
       },
       {
         path: '/portal-config',

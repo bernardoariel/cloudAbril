@@ -8,12 +8,13 @@ import { WhatsAppService } from './whatsapp.service';
 import { WebhookService } from './webhook.service';
 import { WsIncomingMessage } from './entities/ws-incoming-message.entity';
 import { WsWebhookEvent } from './entities/ws-webhook-event.entity';
+import { WsReadStatus } from './entities/ws-read-status.entity';
 
 @Module({
   imports: [
     ConfigModule,    
     HttpModule,
-    TypeOrmModule.forFeature([WsIncomingMessage, WsWebhookEvent]),
+    TypeOrmModule.forFeature([WsIncomingMessage, WsWebhookEvent, WsReadStatus]),
   ],
   controllers: [WhatsAppController],
   providers: [WhatsAppService, WebhookService],

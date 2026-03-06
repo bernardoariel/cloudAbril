@@ -151,6 +151,28 @@ class WsWebhookApi {
   }
 
   /**
+   * Marca una conversación como leída en el servidor (persistencia cross-dispositivo).
+   */
+  async markRead(phone: string, readerEmail: string, lastSeenAt: number): Promise<void> {
+    await axios.post(
+      `${WS_API_URL}/whatsapp/mark-read`,
+      { phone, reader_email: readerEmail, last_seen_at: lastSeenAt },
+      this.getAuthHeader(),
+    );
+  }
+
+  /**
+   * Obtiene el mapa phone → last_seen_at para el email dado desde el servidor.
+   */
+  async getReadStatus(readerEmail: string): Promise<Record<string, number>> {
+    const response = await axios.get(
+      `${WS_API_URL}/whatsapp/read-status`,
+      { params: { email: readerEmail }, ...this.getAuthHeader() },
+    );
+    return response.data ?? {};
+  }
+
+  /**
    * Obtener lista de conversaciones únicas (agrupadas por teléfono)
    * Esta es una implementación temporal que agrupa los mensajes en el frontend
    */

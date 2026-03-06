@@ -2,17 +2,7 @@ import { useQuery } from '@tanstack/vue-query';
 import { computed } from 'vue';
 import { wsWebhookApi } from '@/api/wsWebhookApi';
 import { useAuthStore } from '@/store/useAuth';
-
-// Misma clave que usa WsWebhookMessages.vue para rastrear leídos por conversación
-const SEEN_CONVOS_KEY = 'whatsapp_seen_conversations';
-
-function getSeenConversations(): Record<string, number> {
-  try {
-    return JSON.parse(localStorage.getItem(SEEN_CONVOS_KEY) || '{}');
-  } catch {
-    return {};
-  }
-}
+import { seenConversations } from '@/composables/useSeenConversations';
 
 // Lista de emails de administradores
 const administradoresEmails = ['mario@abrilamoblamientos.com.ar'];
@@ -32,21 +22,18 @@ export const useWhatsappNotifications = () => {
     enabled: isAdmin,
   });
 
-  // Conversaciones no leídas: aquellas donde el último mensaje es más nuevo que lo visto
+  // Conversaciones no leídas: usa el ref reactivo compartido (se recomputa al marcar leída)
   const unreadCount = computed(() => {
     if (!data.value) return 0;
-    const seen = getSeenConversations();
     return data.value.filter(
-      c => c.last_message_timestamp > (seen[c.phone] ?? 0)
+      c => c.last_message_timestamp > (seenConversations.value[c.phone] ?? 0),
     ).length;
   });
 
   const hasNewMessages = computed(() => unreadCount.value > 0);
 
   /**
-   * Se llama al entrar a la vista de chat.
-   * No hace nada aquí porque cada conversación se marca al abrirla.
-   * Existe por compatibilidad con el NavHeader.
+   * Compatibilidad con NavHeader — la lógica real está en markConversationSeen().
    */
   const markAsRead = () => {};
 

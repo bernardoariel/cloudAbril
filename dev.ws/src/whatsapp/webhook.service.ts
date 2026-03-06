@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WsIncomingMessage, MessageType, MessageStatus } from './entities/ws-incoming-message.entity';
 import { WsWebhookEvent, WebhookEventType, MessageStatusValue } from './entities/ws-webhook-event.entity';
+import { WsReadStatus } from './entities/ws-read-status.entity';
 import { WhatsAppWebhookDto } from './dto/webhook.dto';
 
 @Injectable()
@@ -14,6 +15,8 @@ export class WebhookService {
     private readonly incomingMessageRepo: Repository<WsIncomingMessage>,
     @InjectRepository(WsWebhookEvent)
     private readonly webhookEventRepo: Repository<WsWebhookEvent>,
+    @InjectRepository(WsReadStatus)
+    private readonly readStatusRepo: Repository<WsReadStatus>,
   ) {}
 
   /**
@@ -380,5 +383,33 @@ export class WebhookService {
     } catch (error) {
       this.logger.error(`Error saving outgoing message: ${error.message}`, error.stack);
     }
+  }
+
+  /**
+   * Registra que un adminleó esta conversación hasta el timestamp dado.
+   * Usa upsert para actualizar si ya existe el registro.
+   */
+  async markRead(phone: string, readerEmail: string, lastSeenAt: number): Promise<void> {
+    await this.readStatusRepo
+      .createQueryBuilder()
+      .insert()
+      .into(WsReadStatus)
+      .values({ phone, reader_email: readerEmail, last_seen_at: lastSeenAt })
+      .orUpdate(['last_seen_at', 'updated_at'], ['phone', 'reader_email'])
+      .execute();
+    this.logger.log(`Mark read: ${readerEmail} → ${phone} @ ${lastSeenAt}`);
+  }
+
+  /**
+   * Retorna el mapa phone → last_seen_at para un reader_email dado.
+   * Usado por el frontend para pre-cargar el estado de leídos al iniciar sesión.
+   */
+  async getReadStatus(readerEmail: string): Promise<Record<string, number>> {
+    const rows = await this.readStatusRepo.find({ where: { reader_email: readerEmail } });
+    const result: Record<string, number> = {};
+    for (const row of rows) {
+      result[row.phone] = Number(row.last_seen_at);
+    }
+    return result;
   }
 }
