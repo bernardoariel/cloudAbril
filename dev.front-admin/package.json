@@ -27,6 +27,7 @@
     "jspdf": "^3.0.0",
     "jspdf-autotable": "^5.0.2",
     "jwt-decode": "^4.0.0",
+    "node-vibrant": "^4.0.4",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3",

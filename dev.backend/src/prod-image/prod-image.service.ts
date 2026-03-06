@@ -13,4 +13,15 @@ export class ProdImageService {
   async findByCodProducto(codProducto: string): Promise<ProdImage | undefined> {
     return this.prodImagenesRepository.findOne({ where: { CodProducto: codProducto } });
   }
+
+  async findAllImagesMap(): Promise<Map<string, string>> {
+    const allImages = await this.prodImagenesRepository.find({ select: ['CodProducto', 'URL'] });
+    const map = new Map<string, string>();
+    for (const img of allImages) {
+      if (img.URL) {
+        map.set(img.CodProducto, img.URL.replace('10.10.0.12', 'abril.arielbernardo.com/public_image'));
+      }
+    }
+    return map;
+  }
 }

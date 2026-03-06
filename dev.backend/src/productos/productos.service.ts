@@ -21,12 +21,28 @@ export class ProductosService {
   async onModuleInit() {
     await this.prodStockService.loadStockCache();
   }
-  async findAllProducts(): Promise<Producto[]> {
-    const allProducts = await this.productosRepository.find();
+  async findAllProducts(): Promise<any[]> {
+    const [allProducts, pricesMap, imagesMap] = await Promise.all([
+      this.productosRepository.find(),
+      this.prodCostosService.findAllPricesMap(),
+      this.prodImageService.findAllImagesMap(),
+    ]);
     const stockCache = this.prodStockService.getAllStockFromCache();
-    return allProducts.filter((product) => {
+
+    return allProducts
+      .filter((product) => {
         const stock = stockCache.find((item) => item.CodProducto === product.CodProducto);
         return stock && stock.totalCantidad > 0;
+      })
+      .map((product) => {
+        const stockEntry = stockCache.find((item) => item.CodProducto === product.CodProducto);
+        return {
+          ...product,
+          Precio: pricesMap.get(product.CodProducto) ?? null,
+          Imagen: imagesMap.get(product.CodProducto) ?? null,
+          Stock: stockEntry?.totalCantidad ?? 0,
+          Sucursales: this.prodStockService.getSucursalesFromCache(product.CodProducto),
+        };
       });
   }
   async findProductWithPrice(term: string): Promise<any> {

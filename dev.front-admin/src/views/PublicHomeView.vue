@@ -62,8 +62,8 @@
 
     <!-- LOADING -->
     <div v-if="isLoading" class="flex flex-col items-center justify-center py-20">
-      <span class="loading loading-spinner loading-lg" style="color: #EF7E00;"></span>
-      <p class="text-xl font-medium mt-4" style="color: #EF7E00;">Cargando catálogo...</p>
+      <span class="loading loading-spinner loading-lg" style="color: var(--brand-cta);"></span>
+      <p class="text-xl font-medium mt-4" style="color: var(--brand-cta);">Cargando catálogo...</p>
     </div>
 
     <!-- PRODUCTOS -->
@@ -114,7 +114,7 @@
 
           <!-- Info -->
           <div class="p-4">
-            <p class="text-xs text-purple-600 font-semibold mb-1">{{ findMarcasById(prod.CodMarca)?.Marca || '' }}</p>
+            <p class="text-xs font-semibold mb-1 product-brand">{{ findMarcasById(prod.CodMarca)?.Marca || '' }}</p>
             <h4 class="font-bold text-gray-800 text-sm leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-orange-600 transition-colors">
               {{ prod.Producto }}
             </h4>
@@ -131,13 +131,14 @@
 
             <!-- Sucursales -->
             <div class="mt-2 flex flex-wrap gap-1">
-              <span 
-                v-for="suc in prod.Sucursales" 
-                :key="suc.CodSucursal" 
-                class="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 font-medium"
-              >
-                {{ findSucursalById(suc.CodSucursal)?.NombreSuc || 'Suc.' }} ({{ suc.Cantidad }})
-              </span>
+              <template v-for="suc in prod.Sucursales" :key="suc.CodSucursal">
+                <span 
+                  v-if="!findSucursalById(suc.CodSucursal)?.NombreSuc?.toUpperCase().startsWith('SERV')"
+                  class="badge-suc"
+                >
+                  {{ findSucursalById(suc.CodSucursal)?.NombreSuc || 'Suc.' }} ({{ suc.Cantidad }})
+                </span>
+              </template>
             </div>
           </div>
         </div>
@@ -368,12 +369,12 @@ onMounted(() => {
 <style scoped>
 /* Hero con colores Abril (púrpura/magenta) */
 .hero-section {
-  background: linear-gradient(135deg, #7B2D8E 0%, #9B30FF 40%, #C850C0 70%, #EF7E00 100%);
+  background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-primary) 40%, var(--brand-light) 70%, var(--brand-cta) 100%);
 }
 
 /* Botón de búsqueda */
 .btn-buscar {
-  background-color: #EF7E00;
+  background-color: var(--brand-cta);
   color: white;
   padding: 0.75rem 2rem;
   border-radius: 0.75rem;
@@ -382,8 +383,8 @@ onMounted(() => {
   white-space: nowrap;
 }
 .btn-buscar:hover {
-  background-color: #FF9320;
-  box-shadow: 0 4px 12px rgba(239, 126, 0, 0.4);
+  filter: brightness(1.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   transform: translateY(-1px);
 }
 
@@ -400,15 +401,15 @@ onMounted(() => {
   cursor: pointer;
 }
 .marca-btn:hover {
-  border-color: #9B30FF;
-  color: #9B30FF;
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
   background: #f3e8ff;
 }
 .marca-btn-active {
   padding: 0.375rem 1rem;
   border-radius: 2rem;
-  border: 1.5px solid #9B30FF;
-  background: #9B30FF;
+  border: 1.5px solid var(--brand-primary);
+  background: var(--brand-primary);
   color: white;
   font-size: 0.8rem;
   font-weight: 600;
@@ -427,7 +428,7 @@ onMounted(() => {
   bottom: 0;
   width: 4px;
   border-radius: 2px;
-  background: linear-gradient(180deg, #EF7E00 0%, #9B30FF 100%);
+  background: linear-gradient(180deg, var(--brand-cta) 0%, var(--brand-primary) 100%);
 }
 
 /* Cards de productos */
@@ -469,7 +470,7 @@ onMounted(() => {
 
 /* Precio */
 .product-price {
-  color: #EF7E00;
+  color: var(--brand-cta);
 }
 
 /* Paginación */
@@ -487,22 +488,22 @@ onMounted(() => {
   padding: 0 0.5rem;
 }
 .page-btn:hover {
-  border-color: #EF7E00;
-  color: #EF7E00;
+  border-color: var(--brand-cta);
+  color: var(--brand-cta);
   background: #fff7ed;
 }
 .page-btn-active {
   min-width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.5rem;
-  border: 1px solid #EF7E00;
-  background: #EF7E00;
+  border: 1px solid var(--brand-cta);
+  background: var(--brand-cta);
   color: white;
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
   padding: 0 0.5rem;
-  box-shadow: 0 2px 8px rgba(239, 126, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 .page-arrow {
   width: 2.5rem;
@@ -518,8 +519,8 @@ onMounted(() => {
   color: #6b7280;
 }
 .page-arrow:hover:not(:disabled) {
-  border-color: #EF7E00;
-  color: #EF7E00;
+  border-color: var(--brand-cta);
+  color: var(--brand-cta);
   background: #fff7ed;
 }
 
@@ -528,5 +529,21 @@ onMounted(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Nombre de marca en card */
+.product-brand {
+  color: var(--brand-primary);
+}
+
+/* Badge de sucursales con color de paleta */
+.badge-suc {
+  font-size: 10px;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: white;
+  border: 1px solid var(--brand-primary);
+  color: var(--brand-primary);
+  font-weight: 500;
 }
 </style>

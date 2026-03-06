@@ -139,7 +139,8 @@ const contactWhatsApp = () => {
   const name = producto.value?.Producto || 'producto';
   const code = producto.value?.CodProducto || '';
   const msg = `Hola! Estoy interesado en: ${name} (Código: ${code}). Me darían más información?`;
-  const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  const phone = import.meta.env.VITE_WHATSAPP_CONTACT_NUMBER || '';
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
   window.open(url, '_blank');
 };
 </script>

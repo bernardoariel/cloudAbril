@@ -96,6 +96,22 @@
 
           <!-- Opciones exclusivas de administradores -->
           <div v-if="isAdmin" class="p-1">
+            <!-- Configurar colores del portal -->
+            <button
+              @click="goToPortalConfig"
+              class="flex items-center gap-3 w-full p-3 text-sm rounded-xl transition-all duration-300 hover:bg-base-200 group"
+            >
+              <div class="p-2 rounded-lg bg-secondary/10 group-hover:bg-secondary/20 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 2.136.675 4.116 1.821 5.741L2.5 20.5l2.759-1.321A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 2a8 8 0 110 16A8 8 0 0112 4zm-1 4a1 1 0 100 2 1 1 0 000-2zm3 0a1 1 0 100 2 1 1 0 000-2zm-5.5 4a1 1 0 100 2 1 1 0 000-2zm5 0a1 1 0 100 2 1 1 0 000-2zm2.5 0a1 1 0 100 2 1 1 0 000-2z"/>
+                </svg>
+              </div>
+              <div class="text-left">
+                <div class="font-semibold text-base-content">Colores del Portal</div>
+                <div class="text-xs text-base-content/60">Paleta del portal público</div>
+              </div>
+            </button>
+
             <button
               @click="handleTaskExecution"
               class="flex items-center gap-3 w-full p-3 text-sm rounded-xl transition-all duration-300 hover:bg-base-200 group"
@@ -225,7 +241,13 @@ const handleLogout = () => {
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('userEmail');
   isDropdownOpen.value = false; // Cerrar el dropdown
-  router.push({ name: 'login' }); // Redirigir al login
+  router.push({ name: 'publicHome' }); // Redirigir al portal público
+};
+
+// Navegar a configuración del portal
+const goToPortalConfig = () => {
+  isDropdownOpen.value = false;
+  router.push({ name: 'portalConfig' });
 };
 
 // Función para ir atrás

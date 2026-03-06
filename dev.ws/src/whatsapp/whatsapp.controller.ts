@@ -130,8 +130,7 @@ export class WhatsAppController {
 
     this.logger.log(`Webhook verification request: mode=${mode}, token=${token}`);
 
-    // Verificar el token (configúralo en tus variables de entorno)
-    const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'mi_token_secreto_abril_2024';
+    const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
 
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
       this.logger.log('Webhook verified successfully');

@@ -12,5 +12,8 @@
     "build:ws": "powershell -ExecutionPolicy Bypass -File ./build-and-deploy-prod.ps1 -SkipFrontend -SkipBackend"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "node-vibrant": "^4.0.4"
+  }
 }

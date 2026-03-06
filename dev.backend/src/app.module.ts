@@ -33,6 +33,7 @@ import { ClientesRecProvDetModule } from './clientes-recprov-det/clientes-recpro
 import { LoginModule } from './login/login.module';
 import { MercadoPagoModule } from './mercado-pago/mercado-pago.module';
 import { WhatsappHistoryModule } from './whatsapp-history/whatsapp-history.module';
+import { PortalConfigModule } from './portal-config/portal-config.module';
 
 
 @Module({
@@ -98,7 +99,8 @@ import { WhatsappHistoryModule } from './whatsapp-history/whatsapp-history.modul
     ClientesRecProvDetModule,
     LoginModule,
     MercadoPagoModule,
-    WhatsappHistoryModule
+    WhatsappHistoryModule,
+    PortalConfigModule,
   ],
   controllers: [AppController],
   providers: [AppService],

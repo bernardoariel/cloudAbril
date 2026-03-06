@@ -20,6 +20,7 @@ import WsWebhookMessagesView from '@/views/WsWebhookMessages.vue';
 import PrivacyPolicyView from '@/views/PrivacyPolicyView.vue';
 import TermsView from '@/views/TermsView.vue';
 import DataDeletionView from '@/views/DataDeletionView.vue';
+import PortalConfigView from '@/views/PortalConfigView.vue';
 
 // Función para decodificar un JWT
 export function parseJwt(token: string) {
@@ -154,6 +155,12 @@ const routes = [
         name: 'whatsappWebhook',
         component: WsWebhookMessagesView,
         meta: { title: 'Webhook WhatsApp', requiresAuth: false },
+      },
+      {
+        path: '/portal-config',
+        name: 'portalConfig',
+        component: PortalConfigView,
+        meta: { title: 'Colores del Portal', requiresAuth: false },
       },
     ],
   },

@@ -1,13 +1,13 @@
 <template>
-  <div class="public-layout min-h-screen flex flex-col" data-theme="classic-orange">
+  <div ref="layoutRef" class="public-layout min-h-screen flex flex-col" data-theme="classic-orange">
     
-    <!-- PORTADA FACEBOOK (Ocultable) -->
+    <!-- PORTADA FACEBOOK -->
+    <!-- Mobile (≤1024px): siempre visible completa | Desktop: peek de 15px cuando cerrada -->
     <div 
-      class="w-full relative overflow-hidden transition-all duration-700 ease-in-out"
-      :class="isCoverVisible ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'"
+      class="w-full relative overflow-hidden transition-all duration-700 ease-in-out max-h-[1000px]"
+      :class="isCoverVisible ? 'lg:max-h-[1000px]' : 'lg:max-h-[15px]'"
     >
       <div class="facebook-cover w-full">
-        <!-- Portada actual -->
         <img 
           :src="coverUrl || localCover"
           alt="Abril Amoblamientos - Portada"
@@ -17,18 +17,42 @@
       </div>
     </div>
 
+    <!-- OLA ANIMADA encima del navbar -->
+    <div class="navbar-wave-top" aria-hidden="true">
+      <svg class="wave wave1" viewBox="0 0 1440 22" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="waveTopGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   :stop-color="palette.dark"/>
+            <stop offset="50%"  :stop-color="palette.primary"/>
+            <stop offset="100%" :stop-color="palette.light"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,22 L1440,22 L1440,8 C1200,0 960,18 720,8 C480,0 240,18 0,8 Z" fill="url(#waveTopGrad1)"/>
+      </svg>
+      <svg class="wave wave2" viewBox="0 0 1440 22" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="waveTopGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   :stop-color="palette.light"/>
+            <stop offset="50%"  :stop-color="palette.primary"/>
+            <stop offset="100%" :stop-color="palette.dark"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,22 L1440,22 L1440,14 C1080,4 720,22 360,10 C180,4 90,16 0,12 Z" fill="url(#waveTopGrad2)"/>
+      </svg>
+    </div>
+
     <!-- HEADER STICKY (Navbar + Botón Portada) -->
     <div class="sticky top-0 z-50 w-full flex flex-col shadow-xl">
       <!-- NAVBAR con colores Abril -->
-      <nav class="navbar-abril px-4 md:px-8 py-3 flex items-center justify-between">
+      <nav class="navbar-abril relative px-4 md:px-8 py-3 flex items-center justify-between">
         <div class="flex-none">
           <RouterLink to="/" class="flex items-center gap-3 group">
             <img src="@/assets/img/logo.png" alt="Abril" class="h-10 w-auto group-hover:scale-105 transition-transform" />
           </RouterLink>
         </div>
 
-        <!-- Botón Mostrar/Ocultar Portada integrado en el navbar -->
-        <div class="flex-1 flex justify-center">
+        <!-- Botón Mostrar/Ocultar Portada: solo en desktop ≥1024px -->
+        <div class="flex-1 hidden lg:flex justify-center">
           <button 
             @click="toggleCover"
             class="group flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider text-white hover:bg-white/20 transition-all"
@@ -78,43 +102,86 @@
         </div>
       </div>
     </footer>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { RouterView, RouterLink } from 'vue-router';
 import localCoverImg from '@/assets/img/cover-facebook.png';
 
-// URL dinámica para cuando n8n actualice la portada automáticamente.
-// Si tu backend tiene un endpoint tipo GET /api/public/cover-url que devuelve la URL actualizada,
-// podés hacer un fetch acá y setear coverUrl.
-// Por ahora usa la imagen local descargada.
-const coverUrl = ref<string | null>(null);
+interface PaletteColors {
+  dark: string;
+  primary: string;
+  light: string;
+  cta: string;
+}
+
+const FALLBACK: PaletteColors = {
+  dark:    '#7B2D8E',
+  primary: '#9B30FF',
+  light:   '#C850C0',
+  cta:     '#EF7E00',
+};
+
+const palette   = reactive<PaletteColors>({ ...FALLBACK });
+const layoutRef = ref<HTMLElement | null>(null);
+
+// ─── Cover / portada ─────────────────────────────────────────────────────────
+const coverUrl   = ref<string | null>(null);
 const localCover = localCoverImg;
-const isCoverVisible = ref(false); // Por defecto oculta
+const isCoverVisible = ref(false);
 
 const toggleCover = () => {
   isCoverVisible.value = !isCoverVisible.value;
-  if (!isCoverVisible.value) {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  if (!isCoverVisible.value) window.scrollTo({ top: 0, behavior: 'smooth' });
 };
+const handleCoverError = () => { coverUrl.value = null; };
 
-const handleCoverError = () => {
-  coverUrl.value = null;
-};
+// ─── Aplicar paleta al DOM ────────────────────────────────────────────────────
+function applyPalette(colors: PaletteColors) {
+  Object.assign(palette, colors);
+  const el = layoutRef.value;
+  if (el) {
+    el.style.setProperty('--brand-dark',    colors.dark);
+    el.style.setProperty('--brand-primary', colors.primary);
+    el.style.setProperty('--brand-light',   colors.light);
+    el.style.setProperty('--brand-cta',     colors.cta);
+  }
+}
+
+// ─── Cargar paleta desde el backend al montar ─────────────────────────────────
+onMounted(async () => {
+  try {
+    const apiBase = import.meta.env.VITE_API_BASE_URL as string;
+    const res = await fetch(`${apiBase}/portal-config/palette`);
+    if (res.ok) {
+      const data: PaletteColors = await res.json();
+      applyPalette(data);
+      return;
+    }
+  } catch {
+    // silencioso — usa fallback
+  }
+  applyPalette(FALLBACK);
+});
 </script>
 
 <style scoped>
 .public-layout {
   max-width: 100%;
   overflow-x: hidden;
+  /* CSS vars con valores por defecto — sobreescritos dinámicamente por Vibrant o el panel */
+  --brand-dark:    #7B2D8E;
+  --brand-primary: #9B30FF;
+  --brand-light:   #C850C0;
+  --brand-cta:     #EF7E00;
 }
 
-/* Cover de Facebook - Imagen completa en todas las resoluciones */
+/* Cover de Facebook */
 .facebook-cover {
-  background: #C83DAB; /* Color que coincide con los bordes de la portada */
+  background: var(--brand-light);
 }
 .facebook-cover-img {
   width: 100%;
@@ -122,14 +189,14 @@ const handleCoverError = () => {
   display: block;
 }
 
-/* Navbar Abril - Fondo púrpura/magenta como la portada de Facebook */
+/* Navbar */
 .navbar-abril {
-  background: linear-gradient(90deg, #7B2D8E 0%, #9B30FF 50%, #C850C0 100%);
+  background: linear-gradient(90deg, var(--brand-dark) 0%, var(--brand-primary) 50%, var(--brand-light) 100%);
 }
 
-/* Botón INGRESAR con estilo naranja Abril */
+/* Botón INGRESAR */
 .btn-ingresar {
-  background-color: #EF7E00;
+  background-color: var(--brand-cta);
   color: white;
   padding: 0.5rem 1.5rem;
   border-radius: 2rem;
@@ -139,16 +206,53 @@ const handleCoverError = () => {
   font-size: 0.875rem;
   transition: all 0.3s ease;
   border: 2px solid transparent;
-  box-shadow: 0 2px 8px rgba(239, 126, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 .btn-ingresar:hover {
-  background-color: #FF9320;
-  box-shadow: 0 4px 16px rgba(239, 126, 0, 0.6);
+  filter: brightness(1.15);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
   transform: translateY(-1px);
 }
 
-/* Footer con colores Abril */
+/* Footer */
 .footer-abril {
-  background: linear-gradient(90deg, #7B2D8E 0%, #9B30FF 50%, #C850C0 100%);
+  background: linear-gradient(90deg, var(--brand-dark) 0%, var(--brand-primary) 50%, var(--brand-light) 100%);
+}
+
+/* ──── OLA ANIMADA SOBRE EL NAVBAR ──── */
+.navbar-wave-top {
+  position: relative;
+  width: 110%;
+  left: -5%;
+  height: 22px;
+  margin-top: -18px;
+  margin-bottom: -1px;
+  pointer-events: none;
+  z-index: 49;
+  overflow: hidden;
+}
+.navbar-wave-top .wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.navbar-wave-top .wave1 {
+  animation: wave-drift1 7s ease-in-out infinite;
+}
+.navbar-wave-top .wave2 {
+  opacity: 0.55;
+  animation: wave-drift2 4.5s ease-in-out infinite;
+}
+@keyframes wave-drift1 {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(-4%); }
+  100% { transform: translateX(0); }
+}
+@keyframes wave-drift2 {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(4%); }
+  100% { transform: translateX(0); }
 }
 </style>

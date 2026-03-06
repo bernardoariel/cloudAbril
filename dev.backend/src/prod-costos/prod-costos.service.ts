@@ -13,4 +13,15 @@ export class ProdCostosService {
   async findByCodProducto(codProducto: string): Promise<ProdCostos> {
     return this.prodCostosRepository.findOne({ where: { CodProducto: codProducto } });
   }
+
+  async findAllPricesMap(): Promise<Map<string, number>> {
+    const allCosts = await this.prodCostosRepository.find({ select: ['CodProducto', 'Precio'] });
+    const map = new Map<string, number>();
+    for (const c of allCosts) {
+      if (c.Precio !== null && c.Precio !== undefined) {
+        map.set(c.CodProducto, Number(c.Precio));
+      }
+    }
+    return map;
+  }
 }

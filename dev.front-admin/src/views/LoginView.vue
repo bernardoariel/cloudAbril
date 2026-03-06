@@ -20,6 +20,11 @@
         class="input input-bordered w-full mb-4"
       />
       <button @click="handleLogin" class="btn btn-primary w-full">Conectarse</button>
+      <div class="mt-4 text-center">
+        <button @click="router.push({ name: 'publicHome' })" class="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2">
+          ← Volver al sitio
+        </button>
+      </div>
     </div>
   </div>
 </template>
