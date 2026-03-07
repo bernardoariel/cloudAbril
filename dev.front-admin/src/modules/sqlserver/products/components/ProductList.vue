@@ -54,7 +54,6 @@
             <div class="flex items-center justify-between">
               <div class="flex-shrink-0 w-16 h-16 bg-gray-200 rounded-md overflow-hidden mx-5">
                 <img
-                  v-if="prod.Imagen"
                   :src="prod.Imagen ? prod.Imagen.replace(/:8080/, '') : imgDefault"
                   alt="Imagen del producto"
                   class="w-full h-auto object-cover rounded-md"
@@ -88,15 +87,13 @@ import type { ProductsResponse } from '../interfaces/products.response';
 import { formatPrice } from '../../../../common/helpers/formatPrice';
 import { useMarcas } from '../../marcas/composable/useMarcas';
 import { useRoute, useRouter } from 'vue-router';
+import imgDefault from '@/assets/img/No_Image_Available.jpg';
 
 const props = defineProps<{ productos: ProductsResponse[] }>();
 const { findMarcasById, marcas } = useMarcas(); // Accedemos a las marcas desde TanStack Query
 const route = useRoute();
 const router = useRouter();
 const marcaQuery = computed(() => route.query.marca || '');
-const imgDefault = import.meta.env.VITE_BASE_URL.includes('localhost')
-  ? import.meta.env.VITE_BASE_URL + 'src/assets/img/No_Image_Available.jpg'
-  : 'https://abril.arielbernardo.com/assets/No_Image_Available.jpg';
 
 // Estado para la marca seleccionada
 const selectedMarca = ref<number | null>(null);

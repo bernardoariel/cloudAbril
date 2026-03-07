@@ -108,7 +108,7 @@
               :src="prod.Imagen ? prod.Imagen.replace(/:8080/, '') : `https://abril.arielbernardo.com/public_image/productos/${prod.CodProducto}-0.jpg`" 
               :alt="prod.Producto"
               class="product-img group-hover:scale-105 transition-transform duration-500"
-              @error="(e) => (e.target as HTMLImageElement).src = imgDefault"
+              @error="(e) => { const img = e.target as HTMLImageElement; if (!img.dataset.errored) { img.dataset.errored = '1'; img.src = imgDefault; } }"
             />
           </div>
 
@@ -202,6 +202,7 @@ import { useProducts } from '../modules/sqlserver/products/composable/useProduct
 import { useSucursales } from '../modules/sqlserver/sucursales/composable/useSucursales';
 import { useMarcas } from '../modules/sqlserver/marcas/composable/useMarcas';
 import { formatPrice } from '../common/helpers/formatPrice';
+import imgDefault from '@/assets/img/No_Image_Available.jpg';
 
 const router = useRouter();
 const searchTerm = ref('');
@@ -219,9 +220,6 @@ const { sucursales, findSucursalById } = useSucursales();
 const { marcas, findMarcasById } = useMarcas();
 
 // Variables para la imagen
-const imgDefault = import.meta.env.VITE_BASE_URL.includes('localhost')
-  ? import.meta.env.VITE_BASE_URL + 'src/assets/img/No_Image_Available.jpg'
-  : 'https://abril.arielbernardo.com/assets/No_Image_Available.jpg';
 
 // Marcas que existen en los productos para filtro
 const displayMarcas = computed(() => {

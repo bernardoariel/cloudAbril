@@ -30,7 +30,7 @@
               :alt="producto.Producto"
               class="max-w-full max-h-[300px] object-contain cursor-pointer hover:scale-110 transition-transform duration-500"
               @click="openModal"
-              @error="(e) => (e.target as HTMLImageElement).src = imgDefault"
+              @error="(e) => { const img = e.target as HTMLImageElement; if (!img.dataset.errored) { img.dataset.errored = '1'; img.src = imgDefault; } }"
             />
           </div>
           
@@ -102,7 +102,7 @@
         :alt="producto.Producto"
         class="max-w-[90%] max-h-[90%] object-contain"
         @click.stop
-        @error="(e) => (e.target as HTMLImageElement).src = imgDefault"
+        @error="(e) => { const img = e.target as HTMLImageElement; if (!img.dataset.errored) { img.dataset.errored = '1'; img.src = imgDefault; } }"
       />
       <button class="absolute top-4 right-4 text-white text-3xl hover:text-orange-400" @click="closeModal">✕</button>
     </div>
@@ -116,6 +116,7 @@ import { useProduct } from '@/modules/sqlserver/products/composable/useProduct';
 import { useSucursales } from '@/modules/sqlserver/sucursales/composable/useSucursales';
 import { useMarcas } from '@/modules/sqlserver/marcas/composable/useMarcas';
 import { formatPrice } from '@/common/helpers/formatPrice';
+import imgDefault from '@/assets/img/No_Image_Available.jpg';
 
 const route = useRoute();
 const router = useRouter();
@@ -125,10 +126,6 @@ const productId = route.params.id as string;
 const { producto, isLoading, isError } = useProduct({ id: +productId });
 const { findSucursalById } = useSucursales();
 const { findMarcasById } = useMarcas();
-
-const imgDefault = import.meta.env.VITE_BASE_URL.includes('localhost')
-  ? import.meta.env.VITE_BASE_URL + 'src/assets/img/No_Image_Available.jpg'
-  : 'https://abril.arielbernardo.com/assets/No_Image_Available.jpg';
 
 const goBack = () => router.back();
 

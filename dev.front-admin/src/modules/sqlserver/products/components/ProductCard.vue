@@ -4,7 +4,6 @@
   >
     <figure class="lg:w-1/2 flex justify-center">
       <img
-        v-if="producto.Imagen"
         :src="producto.Imagen ? producto.Imagen.replace(/:8080/, '') : imgDefault"
         alt="Product Image"
         class="w-full h-auto max-h-[300px] object-contain cursor-pointer"
@@ -64,14 +63,11 @@ import type { ProductsResponse } from '../interfaces/products.response';
 import { useSucursales } from '../../sucursales/composable/useSucursales';
 import { useMarcas } from '../../marcas/composable/useMarcas';
 import { formatPrice } from '../../../../common/helpers/formatPrice';
+import imgDefault from '@/assets/img/No_Image_Available.jpg';
 
 const { findSucursalById } = useSucursales();
 const { findMarcasById } = useMarcas();
 const producto = defineProps<ProductsResponse>();
-
-const imgDefault = import.meta.env.VITE_BASE_URL.includes('localhost')
-  ? import.meta.env.VITE_BASE_URL + 'src/assets/img/No_Image_Available.jpg'
-  : 'https://abril.arielbernardo.com/assets/No_Image_Available.jpg';
 
 const sucursalesInfo = producto.Sucursales.map((sucursal) => {
   const nombreSuc = findSucursalById(sucursal.CodSucursal)?.NombreSuc || 'Sucursal desconocida';

@@ -259,8 +259,12 @@
           <button
             @click="sendChatReply"
             :disabled="!chatReplyText.trim() || sendingChatReply"
-            class="btn btn-circle border-none text-white flex-shrink-0 disabled:opacity-50"
-            style="background-color: #075E54; width: 44px; height: 44px; min-height: 44px;"
+            class="btn btn-circle border-none text-white flex-shrink-0"
+            :style="{
+              backgroundColor: (!chatReplyText.trim() || sendingChatReply) ? '#a0aec0' : '#075E54',
+              width: '44px', height: '44px', minHeight: '44px',
+              cursor: (!chatReplyText.trim() || sendingChatReply) ? 'not-allowed' : 'pointer',
+            }"
           >
             <span v-if="sendingChatReply" class="loading loading-spinner loading-xs"></span>
             <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
