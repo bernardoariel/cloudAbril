@@ -58,8 +58,9 @@
                 </div>
                 <div class="w-px h-12 bg-gray-200"></div>
                 <div>
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Lista</p>
+                  <p class="text-xs text-gray-400 uppercase font-semibold">Precio</p>
                   <p class="text-2xl font-bold text-gray-700">{{ formatPrice(producto.Precio) }}</p>
+                  <p class="text-xs text-green-500 font-medium">Lista</p>
                 </div>
               </div>
             </div>

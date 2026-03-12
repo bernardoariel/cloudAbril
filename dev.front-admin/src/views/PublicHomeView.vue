@@ -126,7 +126,7 @@
                 <p class="text-xl font-black product-price">{{ formatPrice(prod.Precio * 0.82) }}</p>
                 <p class="text-[10px] text-green-600 font-bold">18% OFF CONTADO</p>
               </div>
-              <span class="text-xs text-gray-400">{{ prod.Stock }} un.</span>
+              <span class="text-xs text-gray-400">{{ prod.Stock }} {{ prod.Stock === 1 ? 'unidad' : 'unidades' }}</span>
             </div>
 
             <!-- Sucursales -->
