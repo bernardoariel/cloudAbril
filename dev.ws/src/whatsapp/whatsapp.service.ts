@@ -129,4 +129,46 @@ export class WhatsAppService {
     }
   }
 
+  /**
+   * Obtiene la URL temporal de descarga de un media de WhatsApp.
+   * Primero consulta la Graph API para obtener la URL, luego descarga el binario.
+   */
+  async getMediaUrl(mediaId: string): Promise<{ url: string; mime_type: string }> {
+    const mediaInfoUrl = `https://graph.facebook.com/${this.apiVersion}/${mediaId}`;
+    try {
+      const { data } = await firstValueFrom(
+        this.http.get(mediaInfoUrl, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        }),
+      );
+      return { url: data.url, mime_type: data.mime_type };
+    } catch (err: any) {
+      const res = err?.response?.data ?? err?.message ?? 'Unknown error';
+      const status = err?.response?.status ?? 500;
+      this.logger.error(`Failed to get media URL for ${mediaId}: ${JSON.stringify(res)}`);
+      throw new HttpException(res, status);
+    }
+  }
+
+  /**
+   * Descarga el binario de un media desde la URL temporal de WhatsApp.
+   * Retorna el buffer, mime_type y el content-disposition si existe.
+   */
+  async downloadMedia(mediaId: string): Promise<{ buffer: Buffer; mimeType: string }> {
+    const { url, mime_type } = await this.getMediaUrl(mediaId);
+    try {
+      const { data } = await firstValueFrom(
+        this.http.get(url, {
+          headers: { Authorization: `Bearer ${this.token}` },
+          responseType: 'arraybuffer',
+        }),
+      );
+      return { buffer: Buffer.from(data), mimeType: mime_type };
+    } catch (err: any) {
+      const res = err?.response?.data?.toString() ?? err?.message ?? 'Unknown error';
+      const status = err?.response?.status ?? 500;
+      this.logger.error(`Failed to download media ${mediaId}: ${res}`);
+      throw new HttpException(res, status);
+    }
+  }
 }

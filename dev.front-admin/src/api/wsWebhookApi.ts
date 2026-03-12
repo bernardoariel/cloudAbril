@@ -173,6 +173,35 @@ class WsWebhookApi {
   }
 
   /**
+   * Construye la URL del proxy de media para usar en <img src>, <audio src>, etc.
+   */
+  getMediaProxyUrl(mediaId: string): string {
+    return `${WS_API_URL}/whatsapp/media/${mediaId}`;
+  }
+
+  /**
+   * Elimina un mensaje individual por UUID
+   */
+  async deleteMessage(id: string): Promise<{ deleted: boolean }> {
+    const response = await axios.delete(
+      `${WS_API_URL}/whatsapp/messages/${id}`,
+      this.getAuthHeader(),
+    );
+    return response.data;
+  }
+
+  /**
+   * Elimina toda una conversación (todos los mensajes de un teléfono)
+   */
+  async deleteConversation(phone: string): Promise<{ deletedMessages: number; deletedEvents: number }> {
+    const response = await axios.delete(
+      `${WS_API_URL}/whatsapp/conversations/${phone}`,
+      this.getAuthHeader(),
+    );
+    return response.data;
+  }
+
+  /**
    * Obtener lista de conversaciones únicas (agrupadas por teléfono)
    * Esta es una implementación temporal que agrupa los mensajes en el frontend
    */

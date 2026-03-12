@@ -86,6 +86,8 @@ export class WebhookService {
           if (msg.document.filename) messageText = msg.document.filename;
         } else if (msg.type === 'location' && msg.location) {
           messageText = JSON.stringify(msg.location);
+        } else if (msg.type === 'contacts' && msg.contacts) {
+          messageText = JSON.stringify(msg.contacts);
         }
 
         // Verificar si el mensaje ya existe
@@ -383,6 +385,69 @@ export class WebhookService {
     } catch (error) {
       this.logger.error(`Error saving outgoing message: ${error.message}`, error.stack);
     }
+  }
+
+  /**
+   * Elimina un mensaje individual por UUID
+   */
+  async deleteMessage(id: string): Promise<{ deleted: boolean }> {
+    // Buscar el mensaje para obtener el whatsapp_message_id
+    const message = await this.incomingMessageRepo.findOne({ where: { id } });
+    if (!message) {
+      return { deleted: false };
+    }
+
+    // Eliminar evento de webhook asociado si existe
+    if (message.whatsapp_message_id) {
+      await this.webhookEventRepo.delete({ whatsapp_message_id: message.whatsapp_message_id });
+    }
+
+    // Eliminar el mensaje
+    await this.incomingMessageRepo.delete({ id });
+    this.logger.log(`Deleted message ${id} (wa_id: ${message.whatsapp_message_id})`);
+    return { deleted: true };
+  }
+
+  /**
+   * Elimina toda una conversación (todos los mensajes de un teléfono)
+   */
+  async deleteConversation(phone: string): Promise<{ deletedMessages: number; deletedEvents: number }> {
+    // Contar antes de borrar
+    const msgCount = await this.incomingMessageRepo.count({ where: { phone_from: phone } });
+
+    // Obtener whatsapp_message_ids para borrar eventos asociados
+    const messages = await this.incomingMessageRepo.find({
+      where: { phone_from: phone },
+      select: ['whatsapp_message_id'],
+    });
+    const waIds = messages.map(m => m.whatsapp_message_id).filter(Boolean);
+
+    // Borrar eventos de webhook
+    let evtCount = 0;
+    if (waIds.length > 0) {
+      const evtResult = await this.webhookEventRepo
+        .createQueryBuilder()
+        .delete()
+        .where('whatsapp_message_id IN (:...ids)', { ids: waIds })
+        .execute();
+      evtCount = evtResult.affected ?? 0;
+    }
+    // También borrar eventos por phone_number
+    const evtResult2 = await this.webhookEventRepo
+      .createQueryBuilder()
+      .delete()
+      .where('phone_number = :phone', { phone })
+      .execute();
+    evtCount += evtResult2.affected ?? 0;
+
+    // Borrar mensajes
+    await this.incomingMessageRepo.delete({ phone_from: phone });
+
+    // Borrar estado de lectura
+    await this.readStatusRepo.delete({ phone });
+
+    this.logger.log(`Deleted conversation ${phone}: ${msgCount} messages, ${evtCount} events`);
+    return { deletedMessages: msgCount, deletedEvents: evtCount };
   }
 
   /**

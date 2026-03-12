@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UsePipes, ValidationPipe, Get, Query, Req, Res, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Post, Body, UsePipes, ValidationPipe, Get, Delete, Param, Query, Req, Res, HttpStatus, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { AvisoCompraDto } from './dto/aviso-compra.dto';
@@ -213,5 +213,57 @@ export class WhatsAppController {
   @Get('stats')
   async getStats() {
     return this.webhookService.getStats();
+  }
+
+  /**
+   * Marca una conversación como leída por un admin
+   */
+  @Post('mark-read')
+  async markRead(@Body() body: { phone: string; reader_email: string; last_seen_at: number }) {
+    await this.webhookService.markRead(body.phone, body.reader_email, body.last_seen_at);
+    return { success: true };
+  }
+
+  /**
+   * Obtiene el estado de lectura de todas las conversaciones para un admin
+   */
+  @Get('read-status')
+  async getReadStatus(@Query('email') email: string) {
+    return this.webhookService.getReadStatus(email);
+  }
+
+  /**
+   * Proxy de media: descarga un archivo multimedia de WhatsApp y lo sirve al frontend
+   */
+  @Get('media/:mediaId')
+  async getMedia(@Param('mediaId') mediaId: string, @Res() res: Response) {
+    try {
+      const { buffer, mimeType } = await this.wsService.downloadMedia(mediaId);
+      res.set({
+        'Content-Type': mimeType,
+        'Content-Length': buffer.length.toString(),
+        'Cache-Control': 'public, max-age=86400',
+      });
+      return res.send(buffer);
+    } catch (error: any) {
+      this.logger.error(`Error proxying media ${mediaId}: ${error.message}`);
+      return res.status(error.status ?? 500).json({ error: 'Failed to fetch media' });
+    }
+  }
+
+  /**
+   * Elimina un mensaje individual por UUID
+   */
+  @Delete('messages/:id')
+  async deleteMessage(@Param('id') id: string) {
+    return this.webhookService.deleteMessage(id);
+  }
+
+  /**
+   * Elimina toda una conversación (todos los mensajes de un teléfono)
+   */
+  @Delete('conversations/:phone')
+  async deleteConversation(@Param('phone') phone: string) {
+    return this.webhookService.deleteConversation(phone);
   }
 }

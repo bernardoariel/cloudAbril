@@ -90,6 +90,7 @@
             v-for="conv in filteredConversations"
             :key="conv.phone"
             @click="selectConversation(conv)"
+            @contextmenu.prevent="openContextMenu($event, 'conversation', conv)"
             class="flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50"
             :class="selectedPhone === conv.phone ? 'bg-green-50' : ''"
           >
@@ -213,14 +214,109 @@
                 :style="msg.status === 'sent'
                   ? 'background-color:#DCF8C6; color:#111; border-radius:12px 0 12px 12px;'
                   : 'background-color:#FFFFFF; color:#111; border-radius:0 12px 12px 12px;'"
+                @contextmenu.prevent="openContextMenu($event, 'message', msg)"
               >
-                <div v-if="msg.message_text" class="break-words leading-snug">
-                  {{ msg.message_text }}
-                </div>
-                <div v-if="msg.media_id" class="flex items-center gap-1 text-gray-500 text-xs mt-1">
-                  <span>📎</span>
-                  <span class="capitalize">{{ msg.message_type }}</span>
-                </div>
+                <!-- IMAGE -->
+                <template v-if="msg.message_type === 'image' && msg.media_id">
+                  <img
+                    :src="wsWebhookApi.getMediaProxyUrl(msg.media_id)"
+                    class="rounded-lg max-w-full cursor-pointer mb-1"
+                    style="max-height: 280px; object-fit: cover;"
+                    @click="openMediaFullscreen(wsWebhookApi.getMediaProxyUrl(msg.media_id), 'image')"
+                    loading="lazy"
+                    alt="Imagen"
+                  />
+                  <div v-if="msg.message_text" class="break-words leading-snug text-xs mt-1">
+                    {{ msg.message_text }}
+                  </div>
+                </template>
+
+                <!-- VIDEO -->
+                <template v-else-if="msg.message_type === 'video' && msg.media_id">
+                  <video
+                    controls
+                    :src="wsWebhookApi.getMediaProxyUrl(msg.media_id)"
+                    class="rounded-lg max-w-full mb-1"
+                    style="max-height: 280px;"
+                    preload="metadata"
+                  ></video>
+                </template>
+
+                <!-- AUDIO -->
+                <template v-else-if="msg.message_type === 'audio' && msg.media_id">
+                  <audio
+                    controls
+                    :src="wsWebhookApi.getMediaProxyUrl(msg.media_id)"
+                    class="w-full"
+                    style="min-width: 220px;"
+                    preload="metadata"
+                  ></audio>
+                </template>
+
+                <!-- DOCUMENT -->
+                <template v-else-if="msg.message_type === 'document' && msg.media_id">
+                  <a
+                    :href="wsWebhookApi.getMediaProxyUrl(msg.media_id)"
+                    target="_blank"
+                    class="flex items-center gap-2 px-3 py-2 rounded-lg mb-1 no-underline"
+                    style="background-color: #f0f0f0;"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 flex-shrink-0" style="color: #075E54" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium truncate" style="color: #111">
+                        {{ msg.message_text || 'Documento' }}
+                      </p>
+                      <p class="text-xs" style="color: #888">{{ msg.media_mime_type || 'Archivo' }}</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" style="color: #888" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                  </a>
+                </template>
+
+                <!-- LOCATION -->
+                <template v-else-if="msg.message_type === 'location' && msg.message_text">
+                  <a
+                    :href="getLocationUrl(msg.message_text)"
+                    target="_blank"
+                    class="flex items-center gap-2 px-3 py-2 rounded-lg mb-1 no-underline"
+                    style="background-color: #f0f0f0;"
+                  >
+                    <span style="font-size: 28px">📍</span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium" style="color: #111">
+                        {{ getLocationLabel(msg.message_text) }}
+                      </p>
+                      <p class="text-xs" style="color: #075E54">Abrir en Google Maps</p>
+                    </div>
+                  </a>
+                </template>
+
+                <!-- CONTACTS -->
+                <template v-else-if="msg.message_type === 'contacts' && msg.message_text">
+                  <div class="flex items-center gap-2 px-2 py-1">
+                    <span style="font-size: 24px">👤</span>
+                    <div class="text-xs">
+                      <p class="font-medium" style="color: #111">{{ getContactLabel(msg.message_text) }}</p>
+                      <p style="color: #888">Contacto compartido</p>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- TEXT (default) -->
+                <template v-else>
+                  <div v-if="msg.message_text" class="break-words leading-snug">
+                    {{ msg.message_text }}
+                  </div>
+                  <div v-if="msg.media_id && !(['image','video','audio','document'].includes(msg.message_type))" class="flex items-center gap-1 text-gray-500 text-xs mt-1">
+                    <span>📎</span>
+                    <span class="capitalize">{{ msg.message_type }}</span>
+                  </div>
+                </template>
+
                 <div class="flex items-center justify-end gap-1 mt-1">
                   <span class="text-xs" style="color: #999">{{ formatChatTime(msg.timestamp) }}</span>
                   <span v-if="msg.status === 'sent'" class="text-xs" style="color:#4FC3F7">✓✓</span>
@@ -274,11 +370,104 @@
         </div>
       </template>
     </div>
+
+    <!-- ═══════════════════════════════════════════
+         Context Menu flotante (click derecho)
+    ═══════════════════════════════════════════ -->
+    <Teleport to="body">
+      <div
+        v-if="contextMenu.visible"
+        class="fixed inset-0 z-40"
+        @click="closeContextMenu"
+        @contextmenu.prevent="closeContextMenu"
+      ></div>
+      <div
+        v-if="contextMenu.visible"
+        class="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[180px]"
+        :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
+      >
+        <!-- Opción de eliminar -->
+        <button
+          @click="confirmDelete"
+          class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          {{ contextMenu.type === 'conversation' ? 'Eliminar chat' : 'Eliminar mensaje' }}
+        </button>
+      </div>
+    </Teleport>
+
+    <!-- ═══════════════════════════════════════════
+         Modal de confirmación de eliminación
+    ═══════════════════════════════════════════ -->
+    <Teleport to="body">
+      <div
+        v-if="deleteConfirm.visible"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        @click.self="cancelDelete"
+      >
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            {{ deleteConfirm.type === 'conversation' ? '¿Eliminar este chat?' : '¿Eliminar este mensaje?' }}
+          </h3>
+          <p class="text-sm text-gray-500 mb-5">
+            <template v-if="deleteConfirm.type === 'conversation'">
+              Se eliminarán todos los mensajes de <strong>{{ deleteConfirm.label }}</strong>. Esta acción no se puede deshacer.
+            </template>
+            <template v-else>
+              Este mensaje se eliminará permanentemente.
+            </template>
+          </p>
+          <div class="flex justify-end gap-2">
+            <button
+              @click="cancelDelete"
+              class="btn btn-sm btn-ghost"
+            >
+              Cancelar
+            </button>
+            <button
+              @click="executeDelete"
+              :disabled="deleteConfirm.loading"
+              class="btn btn-sm btn-error text-white"
+            >
+              <span v-if="deleteConfirm.loading" class="loading loading-spinner loading-xs"></span>
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ═══════════════════════════════════════════
+         Fullscreen media viewer (imágenes)
+    ═══════════════════════════════════════════ -->
+    <Teleport to="body">
+      <div
+        v-if="mediaViewer.visible"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+        @click.self="mediaViewer.visible = false"
+      >
+        <button
+          @click="mediaViewer.visible = false"
+          class="absolute top-4 right-4 btn btn-circle btn-sm bg-white/20 border-none text-white hover:bg-white/40"
+        >
+          ✕
+        </button>
+        <img
+          v-if="mediaViewer.type === 'image'"
+          :src="mediaViewer.url"
+          class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+        />
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, watch, onMounted } from 'vue';
+import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import { wsWebhookApi, type IncomingMessage, type Conversation } from '@/api/wsWebhookApi';
 import {
@@ -299,6 +488,32 @@ const chatReplySuccess = ref(false);
 const chatReplyError   = ref('');
 const chatReplyTextarea = ref<HTMLTextAreaElement | null>(null);
 const messagesContainer = ref<HTMLDivElement | null>(null);
+
+// ── Context menu state ────────────────────────────────────────────────────────
+const contextMenu = ref<{
+  visible: boolean;
+  x: number;
+  y: number;
+  type: 'message' | 'conversation';
+  targetId: string;
+  targetPhone: string;
+  targetLabel: string;
+}>({ visible: false, x: 0, y: 0, type: 'message', targetId: '', targetPhone: '', targetLabel: '' });
+
+// ── Delete confirmation state ─────────────────────────────────────────────────
+const deleteConfirm = ref<{
+  visible: boolean;
+  type: 'message' | 'conversation';
+  id: string;
+  phone: string;
+  label: string;
+  loading: boolean;
+}>({ visible: false, type: 'message', id: '', phone: '', label: '', loading: false });
+
+// ── Media fullscreen viewer ───────────────────────────────────────────────────
+const mediaViewer = ref<{ visible: boolean; url: string; type: string }>({
+  visible: false, url: '', type: 'image',
+});
 
 // ── TanStack Query: conversaciones (auto-refresh cada 60s) ────────────────────
 const {
@@ -410,6 +625,119 @@ async function sendChatReply() {
 // ── Indicador de no leído ─────────────────────────────────────────────────────
 function isConversationUnread(conv: Conversation): boolean {
   return conv.last_message_timestamp > (seenConversations.value[conv.phone] ?? 0);
+}
+
+// ── Context menu ──────────────────────────────────────────────────────────────
+function openContextMenu(event: MouseEvent, type: 'message' | 'conversation', target: any) {
+  const x = Math.min(event.clientX, window.innerWidth - 200);
+  const y = Math.min(event.clientY, window.innerHeight - 60);
+  contextMenu.value = {
+    visible: true,
+    x, y,
+    type,
+    targetId: type === 'message' ? target.id : '',
+    targetPhone: type === 'conversation' ? target.phone : '',
+    targetLabel: type === 'conversation'
+      ? (target.contact_name || target.phone)
+      : (target.message_text?.substring(0, 40) || 'mensaje'),
+  };
+}
+
+function closeContextMenu() {
+  contextMenu.value.visible = false;
+}
+
+function confirmDelete() {
+  deleteConfirm.value = {
+    visible: true,
+    type: contextMenu.value.type,
+    id: contextMenu.value.targetId,
+    phone: contextMenu.value.targetPhone,
+    label: contextMenu.value.targetLabel,
+    loading: false,
+  };
+  closeContextMenu();
+}
+
+function cancelDelete() {
+  deleteConfirm.value.visible = false;
+}
+
+async function executeDelete() {
+  deleteConfirm.value.loading = true;
+  try {
+    if (deleteConfirm.value.type === 'message') {
+      await wsWebhookApi.deleteMessage(deleteConfirm.value.id);
+      // Refrescar mensajes de la conversación activa
+      if (selectedPhone.value) {
+        await queryClient.invalidateQueries({ queryKey: ['ws-messages', selectedPhone.value] });
+      }
+      await queryClient.invalidateQueries({ queryKey: ['ws-conversations'] });
+    } else {
+      await wsWebhookApi.deleteConversation(deleteConfirm.value.phone);
+      // Si borramos la conversación activa, deseleccionar
+      if (selectedPhone.value === deleteConfirm.value.phone) {
+        selectedPhone.value = null;
+      }
+      await queryClient.invalidateQueries({ queryKey: ['ws-conversations'] });
+    }
+  } catch (err: any) {
+    console.error('Error al eliminar:', err);
+  } finally {
+    deleteConfirm.value.visible = false;
+    deleteConfirm.value.loading = false;
+  }
+}
+
+// Cerrar context menu con Escape
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    closeContextMenu();
+    if (mediaViewer.value.visible) mediaViewer.value.visible = false;
+    if (deleteConfirm.value.visible) cancelDelete();
+  }
+}
+onMounted(() => document.addEventListener('keydown', handleKeydown));
+onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown));
+
+// ── Media fullscreen ──────────────────────────────────────────────────────────
+function openMediaFullscreen(url: string, type: string) {
+  mediaViewer.value = { visible: true, url, type };
+}
+
+// ── Location helpers ──────────────────────────────────────────────────────────
+function getLocationUrl(jsonStr: string): string {
+  try {
+    const loc = JSON.parse(jsonStr);
+    return `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`;
+  } catch {
+    return '#';
+  }
+}
+
+function getLocationLabel(jsonStr: string): string {
+  try {
+    const loc = JSON.parse(jsonStr);
+    return loc.name || loc.address || `${loc.latitude}, ${loc.longitude}`;
+  } catch {
+    return 'Ubicación';
+  }
+}
+
+// ── Contact helpers ───────────────────────────────────────────────────────────
+function getContactLabel(jsonStr: string): string {
+  try {
+    const contacts = JSON.parse(jsonStr);
+    if (Array.isArray(contacts) && contacts.length > 0) {
+      const c = contacts[0];
+      const name = c.name?.formatted_name || c.name?.first_name || 'Contacto';
+      const phone = c.phones?.[0]?.phone || '';
+      return phone ? `${name} (${phone})` : name;
+    }
+    return 'Contacto';
+  } catch {
+    return 'Contacto';
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
