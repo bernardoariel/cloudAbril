@@ -1,6 +1,6 @@
 <template>
-  <div class="card bg-base-100 shadow-xl h-full">
-    <div class="card-body p-3 md:p-6">
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body p-3 md:p-6 flex flex-col">
       <WhatsAppTabs class="mb-4" />
 
       <!-- Fila 1: Título + controles principales -->
@@ -77,11 +77,11 @@
           <input v-model="searchText" type="text" placeholder="Buscar en la tabla..." class="input input-bordered input-sm join-item w-full" @input="currentPage = 1" />
           <button v-if="searchText" class="btn btn-sm join-item btn-ghost" @click="searchText = ''; currentPage = 1" title="Limpiar búsqueda">✕</button>
         </div>
-        <button v-if="invalidPhonesInView > 0" class="btn btn-warning btn-sm gap-1" @click="exportInvalidPhonesToCsv" :title="`Exportar ${invalidPhonesInView} registros con teléfonos inválidos`">
+        <button v-if="invalidPhonesInView > 0" class="btn btn-warning btn-sm gap-1" @click="exportInvalidPhonesToXls" :title="`Exportar ${invalidPhonesInView} registros con teléfonos inválidos a Excel`">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Exportar inválidos ({{ invalidPhonesInView }})
+          Excel inválidos ({{ invalidPhonesInView }})
         </button>
       </div>
 
@@ -92,7 +92,7 @@
       </div>
 
       <!-- Tabla -->
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto flex-1">
         <div v-if="isLoading" class="text-center p-6">
           <span class="loading loading-lg loading-spinner text-primary"></span>
           <p class="mt-2">{{ loadingMessage ?? 'Cargando...' }}</p>
@@ -147,11 +147,21 @@
               </tr>
             </tbody>
           </table>
-          <PaginationControl :current-page="currentPage" :total-pages="totalPages" :records-info="recordsInfo" @page-changed="setPage" />
         </template>
-        <div v-else class="text-center p-6 text-base-content/60">
+        <div v-else-if="!isLoading && !error" class="text-center p-6 text-base-content/60">
           <p>No se encontraron registros con los filtros aplicados.</p>
         </div>
+      </div>
+
+      <!-- Paginación: FUERA del overflow-x-auto para que siempre sea visible -->
+      <div class="pt-2 border-t border-base-200 mt-2">
+        <PaginationControl
+          v-if="!isLoading && !error && dataSorted.length > 0"
+          :current-page="currentPage"
+          :total-pages="totalPages"
+          :records-info="recordsInfo"
+          @page-changed="setPage"
+        />
       </div>
     </div>
   </div>
@@ -356,30 +366,44 @@ const toggleSort = (key: string) => {
   currentPage.value = 1;
 };
 
-// ── Exportar inválidos a CSV ─────────────────────────────────────────────────
+// ── Exportar inválidos a Excel (.xls HTML-table, patrón CRISTAL adaptado a JS) ─
 const stripHtml = (str: string) => String(str).replace(/<[^>]*>/g, '');
 
-const exportInvalidPhonesToCsv = () => {
-  const invalids = dataFiltradaBusqueda.value.filter(item => !isTelValido(item));
+const exportInvalidPhonesToXls = () => {
+  const invalids = dataFiltradaBusqueda.value.filter((item: any) => !isTelValido(item));
   if (!invalids.length) return;
 
-  const headers = props.columns.map(c => `"${c.label}"`).join(',');
-  const rows = invalids.map(item =>
-    props.columns
-      .map(c => {
-        const val = c.format ? stripHtml(c.format(item)) : (item[c.key] ?? '');
-        return `"${String(val).replace(/"/g, '""')}"`;
-      })
-      .join(','),
-  );
+  // Cabeceras bold
+  const headerCells = props.columns
+    .map(c => `<td style="font-weight:bold;border:1px solid #ccc;background:#f5f5f5;">${c.label}</td>`)
+    .join('');
 
-  const bom = '\uFEFF';
-  const csv = bom + [headers, ...rows].join('\r\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  // Filas de datos — texto plano (sin HTML), igual que el patrón PHP del skill
+  const dataRows = invalids
+    .map(item => {
+      const cells = props.columns
+        .map(c => {
+          const raw = c.format ? stripHtml(c.format(item)) : String(item[c.key] ?? '');
+          return `<td style="border:1px solid #eee;">${raw}</td>`;
+        })
+        .join('');
+      return `<tr>${cells}</tr>`;
+    })
+    .join('');
+
+  // HTML table con BOM UTF-8 (obligatorio para que Excel abra tildes correctamente)
+  const html =
+    `\uFEFF<html xmlns:o="urn:schemas-microsoft-com:office:office" ` +
+    `xmlns:x="urn:schemas-microsoft-com:office:excel">` +
+    `<head><meta charset="UTF-8"></head><body>` +
+    `<table border="0"><tr>${headerCells}</tr>${dataRows}</table>` +
+    `</body></html>`;
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `telefonos-invalidos-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `telefonos-invalidos-${new Date().toISOString().slice(0, 10)}.xls`;
   a.click();
   URL.revokeObjectURL(url);
 };
