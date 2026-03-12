@@ -1,281 +1,113 @@
 <template>
   <div class="container mx-auto p-2">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <!-- Columna de la Tabla (ocupa 2 de 3 columnas en LG) -->
-      <div class="lg:col-span-2 card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <WhatsAppTabs class="mb-4" />
-          <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
-            <h2 class="card-title">Listado de Pagos</h2>
-            <div class="flex items-center gap-2">
-              <!-- Dropdown de Filtros de Teléfono y Sucursal -->
-              <div class="dropdown dropdown-end">
-                <label tabindex="0" class="btn btn-outline">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  Filtros
-                </label>
-                <div
-                  tabindex="0"
-                  class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-64 mt-2 z-50"
-                >
-                  <div class="p-2 font-bold">Filtrar por Teléfono</div>
-                  <label class="label cursor-pointer">
-                    <span class="label-text">Solo teléfonos válidos</span>
-                    <input
-                      type="checkbox"
-                      v-model="filterValidPhones"
-                      class="checkbox checkbox-primary"
-                    />
-                  </label>
-                  <label class="label cursor-pointer">
-                    <span class="label-text">Solo teléfonos inválidos</span>
-                    <input
-                      type="checkbox"
-                      v-model="filterInvalidPhones"
-                      class="checkbox checkbox-primary"
-                    />
-                  </label>
-                  <div class="divider my-1"></div>
-                  <!-- Acordeón filtro sucursal -->
-                  <div
-                    class="flex items-center justify-between p-2 font-bold cursor-pointer select-none"
-                    @click="toggleSucursalesFiltro"
-                  >
-                    <span>Filtrar por Sucursal</span>
-                    <span>
-                      <svg
-                        v-if="!mostrarSucursalesFiltro"
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 4v16m8-8H4"
-                        />
-                      </svg>
-                      <svg
-                        v-else
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M20 12H4"
-                        />
-                      </svg>
-                    </span>
-                  </div>
-                  <transition name="fade">
-                    <div v-if="mostrarSucursalesFiltro">
-                      <input
-                        type="text"
-                        v-model="textoBusquedaSucursal"
-                        placeholder="Buscar sucursal..."
-                        class="input input-bordered input-sm w-full mb-2"
-                      />
-                      <label class="label cursor-pointer">
-                        <span class="label-text font-semibold">Todas las sucursales</span>
-                        <input
-                          type="checkbox"
-                          class="checkbox checkbox-primary"
-                          :checked="todasSeleccionadas"
-                          @change="toggleTodasSucursales"
-                        />
-                      </label>
-                      <div class="max-h-40 overflow-y-auto">
-                        <label
-                          v-for="sucursal in sucursalesFiltradas"
-                          :key="sucursal.CodSucursal"
-                          class="label cursor-pointer"
-                        >
-                          <span class="label-text">{{ sucursal.NombreSuc }}</span>
-                          <input
-                            type="checkbox"
-                            class="checkbox checkbox-primary"
-                            :value="sucursal.CodSucursal"
-                            v-model="sucursalesSeleccionadas"
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  </transition>
-                </div>
-              </div>
-              <DateRangeFilter @filter-applied="handleFilterUpdate" />
-              <!-- Botón Enviar WhatsApp -->
-              <button class="btn btn-success" @click="openWhatsModal">Enviar WhatsApp</button>
-            </div>
-          </div>
 
-          <div
-            v-if="activeFilterLabel || selectedKeys.size > 0"
-            class="flex justify-between items-center p-3 bg-base-200 rounded-lg text-sm mb-4"
-          >
-            <span v-if="activeFilterLabel"
-              >Filtro: <span class="font-bold">{{ activeFilterLabel }}</span></span
-            >
-            <span v-if="seleccionablesSeleccionados > 0" class="font-bold"
-              >{{ seleccionablesSeleccionados }} registros seleccionados</span
-            >
-          </div>
-
-          <div class="overflow-x-auto">
-            <div v-if="isLoading" class="text-center p-4">
-              <span class="loading loading-lg loading-spinner text-primary"></span>
-              <p>Cargando recibos...</p>
-            </div>
-            <div v-else-if="error" class="alert alert-error">
-              <span>Error! Ha ocurrido un problema: {{ error }}</span>
-            </div>
-            <div v-else-if="paginatedRecibosSucursal.length > 0">
-              <DataTable
-                :data="paginatedRecibosSucursal"
-                :columns="columns"
-                row-key="CodReciboPr"
-                :selected-row-key="selectedReciboKey"
-                :selected-keys="selectedKeys"
-                :is-all-selected="isAllSelected"
-                :mensajes-enviados="mensajesEnviados"
-                @row-clicked="handleRowClick"
-                @toggle-row-selection="toggleRowSelection"
-                @set-select-all="setSelectAll"
-                @whatsapp-detail-clicked="handleWhatsAppDetail"
-              />
-              <PaginationControl
-                :current-page="currentPage"
-                :total-pages="totalPagesSucursal"
-                :records-info="recordsInfoSucursal"
-                @page-changed="setPage"
-              />
-            </div>
-            <div v-else class="text-center p-4">
-              <p>No se encontraron registros que coincidan con los filtros aplicados.</p>
-            </div>
-          </div>
-        </div>
+      <!-- ── Grid principal (2/3) ──────────────────────────────────────── -->
+      <div class="lg:col-span-2">
+        <WsDataGrid
+          ref="gridRef"
+          title="Listado de Pagos"
+          loading-message="Cargando recibos..."
+          :is-loading="isLoading"
+          :error="error"
+          :base-data="filteredRecibos"
+          :columns="columns"
+          row-key="CodReciboPr"
+          :selected-row-key="selectedReciboKey"
+          :selected-keys="selectedKeys"
+          :is-all-selected="isAllSelected"
+          :mensajes-enviados="mensajesEnviados"
+          :filter-valid-phones="filterValidPhones"
+          :filter-invalid-phones="filterInvalidPhones"
+          :sucursales="sucursales"
+          sucursal-key="CodSucursal"
+          :search-fields="['ApellidoCont', 'NombreCont', 'CodReciboPr', 'CodCredito', 'Telefonos', 'NroDoc']"
+          @phone-filters-update="onPhoneFiltersUpdate"
+          @filter-date-update="handleFilterUpdate"
+          @row-clicked="handleRowClick"
+          @toggle-row-selection="toggleRowSelection"
+          @set-select-all="setSelectAll"
+          @whatsapp-detail-clicked="handleWhatsAppDetail"
+          @open-whats-modal="openWhatsModal"
+        />
       </div>
-      <!-- Columna del Detalle (ocupa 1 de 3 columnas en LG) -->
+
+      <!-- ── Detalle de recibo (1/3) ────────────────────────────────────── -->
       <div class="lg:col-span-1 space-y-4">
         <ReciboDetailCard :recibo="selectedRecibo" />
       </div>
     </div>
   </div>
 
-  <!-- Modal DaisyUI -->
-  <dialog id="whatsModal" class="modal" :open="isWhatsModalOpen">
+  <!-- ── Modal Enviar WhatsApp ─────────────────────────────────────────── -->
+  <dialog id="whatsModalPagos" class="modal" :open="isWhatsModalOpen">
     <form method="dialog" class="modal-box">
-      <h3 class="font-bold text-lg mb-2">Enviar WhatsApp</h3>
+      <h3 class="font-bold text-lg mb-2">Enviar WhatsApp — Pagos</h3>
 
-      <!-- Mensaje de estado -->
-      <div
-        v-if="whatsAppMessage"
-        class="alert mb-4"
-        :class="whatsAppMessage.includes('Error') ? 'alert-error' : 'alert-success'"
-      >
+      <div v-if="whatsAppMessage" class="alert mb-4"
+        :class="whatsAppMessage.includes('Error') || whatsAppMessage.includes('❌') ? 'alert-error' : 'alert-success'">
         <span>{{ whatsAppMessage }}</span>
       </div>
 
       <div class="mb-4">
-        <div class="font-semibold">Información del envío:</div>
-        <div class="bg-base-200 p-3 rounded text-sm">
-          <p><strong>Registros seleccionados:</strong> {{ seleccionablesSeleccionados }}</p>
-          <p><strong>Se enviará al primer registro con teléfono válido</strong></p>
-          <p class="text-xs text-gray-600 mt-2">
-            Template: aviso_pago_abril<br />
+        <div class="font-semibold mb-1">Información del envío:</div>
+        <div class="bg-base-200 p-3 rounded text-sm space-y-1">
+          <p><strong>Registros seleccionados con tel. válido:</strong> {{ seleccionablesSeleccionados }}</p>
+          <p class="text-xs text-base-content/60 mt-2">
+            Template: <code>aviso_pago_abril</code><br />
             Endpoint: {{ WHATSAPP_BASE_URL }}/whatsapp/aviso_pago_abril
           </p>
         </div>
       </div>
 
       <div class="modal-action">
-        <button
-          class="btn btn-outline"
-          @click="closeWhatsModal"
-          type="button"
-          :disabled="isSendingWhatsApp"
-        >
+        <button class="btn btn-outline" @click="closeWhatsModal" type="button" :disabled="isSendingWhatsApp">
           Cancelar
         </button>
-        <button
-          class="btn btn-success"
-          type="button"
-          @click="sendWhatsApp"
-          :disabled="isSendingWhatsApp || seleccionablesSeleccionados === 0"
-        >
+        <button class="btn btn-success" type="button" @click="sendWhatsApp"
+          :disabled="isSendingWhatsApp || seleccionablesSeleccionados === 0">
           <span v-if="isSendingWhatsApp" class="loading loading-spinner loading-sm"></span>
-          {{
-            isSendingWhatsApp ? 'Enviando...' : `Enviar WhatsApp (${seleccionablesSeleccionados})`
-          }}
+          {{ isSendingWhatsApp ? 'Enviando...' : `Enviar (${seleccionablesSeleccionados})` }}
         </button>
       </div>
     </form>
   </dialog>
 
-  <!-- Modal para ver detalle del mensaje -->
-  <dialog id="mensajeDetalleModal" class="modal" :open="modalMensajeOpen">
+  <!-- ── Modal detalle mensaje enviado ────────────────────────────────── -->
+  <dialog id="mensajeDetalleModalPagos" class="modal" :open="modalMensajeOpen">
     <form method="dialog" class="modal-box max-w-2xl">
       <h3 class="font-bold text-lg mb-4">📱 Detalle del Mensaje WhatsApp</h3>
 
       <div v-if="mensajeDetalle" class="space-y-3">
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <p class="text-sm font-semibold text-gray-600">Tipo:</p>
+            <p class="text-sm font-semibold text-base-content/60">Tipo:</p>
             <p class="badge badge-warning">💰 Pago</p>
           </div>
           <div>
-            <p class="text-sm font-semibold text-gray-600">Fecha de envío:</p>
+            <p class="text-sm font-semibold text-base-content/60">Fecha de envío:</p>
             <p>{{ new Date(mensajeDetalle.fecha_envio).toLocaleString('es-AR') }}</p>
           </div>
         </div>
-
         <div class="divider"></div>
-
         <div>
-          <p class="text-sm font-semibold text-gray-600">Cliente:</p>
+          <p class="text-sm font-semibold text-base-content/60">Cliente:</p>
           <p class="text-lg">{{ mensajeDetalle.nombre }}</p>
         </div>
-
         <div>
-          <p class="text-sm font-semibold text-gray-600">Teléfono:</p>
+          <p class="text-sm font-semibold text-base-content/60">Teléfono:</p>
           <p>
-            <a
-              :href="`https://wa.me/${mensajeDetalle.telefono}`"
-              target="_blank"
-              class="link link-primary"
-            >
+            <a :href="`https://wa.me/${mensajeDetalle.telefono}`" target="_blank" rel="noopener noreferrer" class="link link-primary">
               {{ mensajeDetalle.telefono }}
             </a>
           </p>
         </div>
-
         <div>
-          <p class="text-sm font-semibold text-gray-600">Referencia:</p>
+          <p class="text-sm font-semibold text-base-content/60">Referencia:</p>
           <p>{{ mensajeDetalle.source_system }}: {{ mensajeDetalle.source_id }}</p>
         </div>
-
         <div v-if="mensajeDetalle.response" class="mt-4">
-          <p class="text-sm font-semibold text-gray-600 mb-2">Respuesta del servidor:</p>
+          <p class="text-sm font-semibold text-base-content/60 mb-2">Respuesta del servidor:</p>
           <div class="bg-base-200 p-3 rounded text-xs overflow-auto max-h-60">
             <pre>{{ JSON.stringify(mensajeDetalle.response, null, 2) }}</pre>
           </div>
@@ -290,12 +122,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue';
-import DateRangeFilter from '@/components/DateRangeFilter.vue';
-import DataTable from '@/components/DataTable.vue';
-import PaginationControl from '@/components/PaginationControl.vue';
+import { ref, computed, onMounted } from 'vue';
+import WsDataGrid from '@/components/WsDataGrid.vue';
 import ReciboDetailCard from '@/components/ReciboDetailCard.vue';
-import WhatsAppTabs from '@/components/WhatsAppTabs.vue';
 import { usePagos } from '../composables/usePagos';
 import type { Recibo } from '../interfaces/Recibo';
 import { useSucursales } from '@/modules/sqlserver/sucursales/composable/useSucursales';
@@ -304,36 +133,30 @@ import { whatsappService } from '../services/whatsappService';
 import type { AvisoPagoPayload } from '../services/whatsappService';
 import { normalizePhone } from '../common/helpers/normalizePhone';
 import { sleep } from '../common/helpers/sleep';
+
+const WHATSAPP_BASE_URL = import.meta.env.VITE_WHATSAPP_BASE_URL;
+
 const {
   isLoading,
   error,
   columns,
-  paginatedData,
-  currentPage,
-  totalPages,
-  recordsInfo,
   filterValidPhones,
   filterInvalidPhones,
   selectedKeys,
   isAllSelected,
   setDateRange,
   setPhoneFilters,
-  setPage,
   toggleRowSelection,
   setSelectAll,
   filteredRecibos,
 } = usePagos();
-const WHATSAPP_BASE_URL = import.meta.env.VITE_WHATSAPP_BASE_URL;
 
-const { sucursales, isLoading: loadingSucursales, findSucursalById } = useSucursales();
+const { sucursales, findSucursalById } = useSucursales();
 const { mensajesEnviados, agregarMensaje, cargarHistorial } = useWhatsAppHistory();
-const sucursalesSeleccionadas = ref<number[]>([]);
 
-// Modal para mostrar detalle del mensaje
-const modalMensajeOpen = ref(false);
-const mensajeDetalle = ref<any>(null);
+// Ref al componente grilla para acceder a los datos filtrados
+const gridRef = ref<InstanceType<typeof WsDataGrid> | null>(null);
 
-// Cargar historial al montar el componente
 onMounted(async () => {
   try {
     await cargarHistorial({ tipo: 'aviso_pago' });
@@ -342,125 +165,64 @@ onMounted(async () => {
   }
 });
 
-// Manejar clic en ícono de WhatsApp
-const handleWhatsAppDetail = (mensaje: any) => {
-  mensajeDetalle.value = mensaje;
-  modalMensajeOpen.value = true;
-};
-
-const cerrarModalMensaje = () => {
-  modalMensajeOpen.value = false;
-  mensajeDetalle.value = null;
-};
-
-// Buscador de sucursales
-const textoBusquedaSucursal = ref('');
-const sucursalesFiltradas = computed(() => {
-  if (!textoBusquedaSucursal.value) return sucursales.value;
-  return sucursales.value.filter((s) =>
-    s.NombreSuc.toLowerCase().includes(textoBusquedaSucursal.value.toLowerCase()),
-  );
-});
-
-// Estado para expandir/cerrar filtro de sucursal
-const mostrarSucursalesFiltro = ref(false);
-const toggleSucursalesFiltro = () => {
-  mostrarSucursalesFiltro.value = !mostrarSucursalesFiltro.value;
-};
-
+// ── Selección de recibo ───────────────────────────────────────────────────
 const selectedRecibo = ref<Recibo | null>(null);
-const selectedReciboKey = computed(() => selectedRecibo.value?.CodReciboPr || null);
-
-const activeFilterLabel = ref('');
-
-const handleFilterUpdate = (filter: { from: string; to: string; label: string }) => {
-  activeFilterLabel.value = filter.label;
-  setDateRange(filter.from, filter.to);
-  selectedRecibo.value = null;
-};
+const selectedReciboKey = computed(() => selectedRecibo.value?.CodReciboPr ?? null);
 
 const handleRowClick = (recibo: Recibo) => {
   selectedRecibo.value = recibo;
 };
 
-// Observador para actualizar los filtros de teléfono cuando cambien en la UI
-watch([filterValidPhones, filterInvalidPhones], ([valid, invalid]) => {
+// ── Filtros del grid ──────────────────────────────────────────────────────
+const handleFilterUpdate = (filter: { from: string; to: string; label: string }) => {
+  setDateRange(filter.from, filter.to);
+  selectedRecibo.value = null;
+};
+
+const onPhoneFiltersUpdate = (valid: boolean, invalid: boolean) => {
   setPhoneFilters(valid, invalid);
   selectedRecibo.value = null;
-});
-
-// Opción para seleccionar/deseleccionar todas
-const toggleTodasSucursales = () => {
-  if (sucursalesSeleccionadas.value.length === sucursales.value.length) {
-    sucursalesSeleccionadas.value = [];
-  } else {
-    sucursalesSeleccionadas.value = sucursales.value.map((s) => s.CodSucursal);
-  }
 };
-const todasSeleccionadas = computed(
-  () =>
-    sucursales.value.length > 0 && sucursalesSeleccionadas.value.length === sucursales.value.length,
-);
 
-// Computada para filtrar por sucursales seleccionadas
-const recibosFiltradosPorSucursal = computed(() => {
-  if (!sucursalesSeleccionadas.value.length) return filteredRecibos.value;
-  return filteredRecibos.value.filter((recibo: any) => {
-    const codigoSucursal = recibo.CodSucursal || recibo.codSucRecibo || recibo.CodSucRecibo;
-    return sucursalesSeleccionadas.value.includes(codigoSucursal);
-  });
-});
-
-// Computada para paginación sobre los recibos filtrados por sucursal
-const paginatedRecibosSucursal = computed(() => {
-  const start = (currentPage.value - 1) * 7;
-  return recibosFiltradosPorSucursal.value.slice(start, start + 7);
-});
-
-const totalPagesSucursal = computed(() => Math.ceil(recibosFiltradosPorSucursal.value.length / 8));
-const recordsInfoSucursal = computed(() => {
-  const total = recibosFiltradosPorSucursal.value.length;
-  if (total === 0) return '';
-  const start = (currentPage.value - 1) * 8 + 1;
-  const end = start + paginatedRecibosSucursal.value.length - 1;
-  return `Mostrando ${start} - ${end} de ${total} registros`;
-});
-
-// Computada para contar solo los seleccionados con teléfono válido
+// ── Contador de seleccionados enviables ───────────────────────────────────
 const seleccionablesSeleccionados = computed(() => {
-  return recibosFiltradosPorSucursal.value.filter((item: any) => {
-    const telefono = item.Telefonos || item.telefonos;
-    const digitsOnly = telefono ? telefono.replace(/\D/g, '') : '';
-    const telefonoValido = digitsOnly.length >= 10;
-    return telefonoValido && selectedKeys.value.has(item.CodReciboPr ?? item.codReciboPr);
+  const data = gridRef.value?.allFilteredData ?? [];
+  return data.filter((item: any) => {
+    const tel = item.Telefonos || item.telefonos;
+    const t = (tel ?? '').replace(/\D/g, '');
+    return t.length >= 10 && selectedKeys.value.has(item.CodReciboPr ?? item.codReciboPr);
   }).length;
 });
 
+// ── Modal WhatsApp ─────────────────────────────────────────────────────────
 const isWhatsModalOpen = ref(false);
 const isSendingWhatsApp = ref(false);
 const whatsAppMessage = ref('');
 
-function openWhatsModal() {
-  isWhatsModalOpen.value = true;
-}
-function closeWhatsModal() {
-  isWhatsModalOpen.value = false;
-}
+const openWhatsModal = () => { isWhatsModalOpen.value = true; };
+const closeWhatsModal = () => { isWhatsModalOpen.value = false; whatsAppMessage.value = ''; };
 
+// ── Modal detalle mensaje ─────────────────────────────────────────────────
+const modalMensajeOpen = ref(false);
+const mensajeDetalle = ref<any>(null);
+
+const handleWhatsAppDetail = (mensaje: any) => { mensajeDetalle.value = mensaje; modalMensajeOpen.value = true; };
+const cerrarModalMensaje = () => { modalMensajeOpen.value = false; mensajeDetalle.value = null; };
+
+// ── Envío WhatsApp ─────────────────────────────────────────────────────────
 async function sendWhatsApp() {
   isSendingWhatsApp.value = true;
   whatsAppMessage.value = '';
 
   try {
-    // 1) Seleccionados con teléfono válido
-    const recibosSeleccionados = recibosFiltradosPorSucursal.value.filter((item: any) => {
-      const telefono = item.Telefonos || item.telefonos;
-      const digitsOnly = telefono ? telefono.replace(/\D/g, '') : '';
-      const telefonoValido = digitsOnly.length >= 10;
-      return telefonoValido && selectedKeys.value.has(item.CodReciboPr ?? item.codReciboPr);
+    const allData = gridRef.value?.allFilteredData ?? [];
+    const recibosSeleccionados = allData.filter((item: any) => {
+      const tel = item.Telefonos || item.telefonos;
+      const t = (tel ?? '').replace(/\D/g, '');
+      return t.length >= 10 && selectedKeys.value.has(item.CodReciboPr ?? item.codReciboPr);
     });
 
-    if (recibosSeleccionados.length === 0) {
+    if (!recibosSeleccionados.length) {
       whatsAppMessage.value = 'No hay registros seleccionados con teléfonos válidos';
       return;
     }
@@ -468,55 +230,25 @@ async function sendWhatsApp() {
     const ok: string[] = [];
     const fail: { nombre: string; motivo: string }[] = [];
 
-    // 2) Enviar uno por uno
     for (const r of recibosSeleccionados) {
-      // Construir nombre completo (fuera del try para que esté disponible en catch)
       const apellido = r.ApellidoCont || '';
       const nombre = r.NombreCont || r.nombreCont || '';
-      let nombreCompleto = '';
-      if (apellido && nombre) {
-        nombreCompleto = `${apellido}, ${nombre}`;
-      } else if (apellido) {
-        nombreCompleto = apellido;
-      } else if (nombre) {
-        nombreCompleto = nombre;
-      } else {
-        nombreCompleto = 'CLIENTE';
-      }
+      let nombreCompleto = apellido && nombre ? `${apellido}, ${nombre}` : apellido || nombre || 'CLIENTE';
 
       try {
-        let telefono = normalizePhone(r.Telefonos || r.telefonos || '');
+        const telefono = normalizePhone(r.Telefonos || r.telefonos || '');
         if (!telefono) throw new Error('Teléfono inválido');
 
         const nroRecibo = String(r.CodReciboPr || r.codReciboPr || '');
-
-        // Buscar sucursal - DEBUGGING MEJORADO
         const codigoSucursal = r.CodSucursal || r.codSucRecibo || r.CodSucRecibo;
-        console.log('🏢 Buscando sucursal para recibo:', {
-          recibo: r.CodReciboPr,
-          codigoSucursal: codigoSucursal,
-          camposDisponibles: Object.keys(r).filter((key) => key.toLowerCase().includes('suc')),
-          sucursalesCargadas: sucursales.value.length,
-          sucursalesDisponibles: sucursales.value.map((s) => ({
-            cod: s.CodSucursal,
-            nombre: s.NombreSuc,
-          })),
-        });
-
         const sucursal = findSucursalById(codigoSucursal);
-        const nombreSucursal = sucursal ? sucursal.NombreSuc : 'SUCURSAL NO ENCONTRADA';
-
-        console.log('🏢 Resultado búsqueda sucursal:', {
-          sucursal,
-          nombreSucursal,
-          codigoUsado: codigoSucursal,
-        });
+        const nombreSucursal = sucursal?.NombreSuc ?? 'SUCURSAL NO ENCONTRADA';
 
         const payload: AvisoPagoPayload = {
           to: telefono,
           nombre: nombreCompleto,
           nro_operacion: String(r.codCredito || r.CodCredito || ''),
-          nro_recibo: String(r.CodReciboPr || r.codReciboPr || ''),
+          nro_recibo: nroRecibo,
           fecha: new Date(r.Fecha).toLocaleDateString('es-AR'),
           documento: String(r.NroDoc || r.nroDoc || ''),
           nombre_sucursal: nombreSucursal,
@@ -525,48 +257,35 @@ async function sendWhatsApp() {
 
         const response = await whatsappService.sendAvisoPago(payload);
 
-        // 📱 Guardar en historial BD
         await agregarMensaje({
           tipo: 'aviso_pago',
           sourceSystem: 'PAGO',
           sourceId: nroRecibo,
           externalClientId: String(r.NroDoc || r.nroDoc || r.CodReciboPr || r.codReciboPr),
-          telefono: telefono,
+          telefono,
           nombre: nombreCompleto,
           payloadSnapshot: {
             nro_operacion: String(r.codCredito || r.CodCredito || ''),
             sucursal: nombreSucursal,
             importe: Number(r.MontoPagado || r.montoPagado || 0),
           },
-          response: response,
+          response,
         });
 
-        ok.push(`${r.NombreCont || r.nombreCont} (${telefono})`);
+        ok.push(`${nombreCompleto} (${telefono})`);
         await sleep(350);
       } catch (e: any) {
-        fail.push({
-          nombre: nombreCompleto || r.NombreCont || r.nombreCont || 'CLIENTE',
-          motivo: e?.message ?? 'Error desconocido',
-        });
+        fail.push({ nombre: nombreCompleto, motivo: e?.message ?? 'Error desconocido' });
       }
     }
 
-    const total = recibosSeleccionados.length;
-    const enviados = ok.length;
-    const errores = fail.length;
-
     whatsAppMessage.value =
-      `Enviados ${enviados}/${total}.` +
+      `Enviados ${ok.length}/${recibosSeleccionados.length}.` +
       (ok.length ? ` ✅ OK: ${ok.join(' | ')}.` : '') +
-      (fail.length
-        ? ` ❌ Errores: ${fail.map((f) => `${f.nombre} (${f.motivo})`).join(' | ')}.`
-        : '');
+      (fail.length ? ` ❌ Errores: ${fail.map(f => `${f.nombre} (${f.motivo})`).join(' | ')}.` : '');
 
-    if (errores === 0) {
-      setTimeout(() => {
-        closeWhatsModal();
-        whatsAppMessage.value = '';
-      }, 1500);
+    if (!fail.length) {
+      setTimeout(() => { closeWhatsModal(); }, 1500);
     }
   } catch (err: any) {
     whatsAppMessage.value = `Error general: ${err?.message ?? 'desconocido'}`;
@@ -575,14 +294,3 @@ async function sendWhatsApp() {
   }
 }
 </script>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>
