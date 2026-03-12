@@ -57,7 +57,7 @@ export const useVentas = () => {
 
 
   // --- Lógica de la API y Filtrado ---
-  const { data: ventas, isLoading, error } = useQuery({
+  const { data: ventas, isFetching: isLoading, error } = useQuery({
     queryKey: ['ventas', dateFrom, dateTo],
     queryFn: () => getVentasByDateRange(dateFrom.value, dateTo.value),
     initialData: [],

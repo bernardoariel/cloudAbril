@@ -56,7 +56,7 @@ export const usePagos = () => {
 
 
   // --- Lógica de la API y Filtrado ---
-  const { data: recibos, isLoading, error } = useQuery({
+  const { data: recibos, isFetching: isLoading, error } = useQuery({
     queryKey: ['recibos', dateFrom, dateTo],
     queryFn: () => getRecibosByDateRange(dateFrom.value, dateTo.value),
     initialData: [],
