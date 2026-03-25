@@ -6,10 +6,25 @@ import { PortalPaletteDto } from './portal-config.dto';
 const PALETTE_FILE = path.join(process.cwd(), 'portal-palette.json');
 
 const FALLBACK: PortalPaletteDto = {
-  dark:    '#7B2D8E',
-  primary: '#9B30FF',
-  light:   '#C850C0',
-  cta:     '#EF7E00',
+  dark:               '#7B2D8E',
+  primary:            '#9B30FF',
+  light:              '#C850C0',
+  cta:                '#EF7E00',
+  showOnlyWithImages: false,
+  navbarLogoColor:    'white',
+  navbarLinkColor:    'white',
+  navbarButtonColor:  'white',
+  footerLogoColor:    'white',
+  heroTitle:          'Encontrá lo que buscás',
+  heroSubtitle:       'Los mejores productos, las mejores opciones de pago',
+  heroTitleColor:     'white',
+  heroSubtitleColor:  'white',
+  footerCompany:      'Abril Amoblamientos',
+  footerTagline:      'abril vive en vos',
+  footerWebsite:      'abrilamoblamientos.com.ar',
+  footerCompanyColor: 'white',
+  footerTaglineColor: 'white',
+  footerWebsiteColor: 'white',
 };
 
 @Injectable()
@@ -20,7 +35,30 @@ export class PortalConfigService {
     try {
       if (fs.existsSync(PALETTE_FILE)) {
         const content = fs.readFileSync(PALETTE_FILE, 'utf8');
-        return JSON.parse(content) as PortalPaletteDto;
+        // Merge con FALLBACK para garantizar campos nuevos en paletas antiguas.
+        // Solo se retornan claves conocidas para evitar que campos viejos contaminen el DTO.
+        const raw = { ...FALLBACK, ...JSON.parse(content) };
+        return {
+          dark:               raw.dark,
+          primary:            raw.primary,
+          light:              raw.light,
+          cta:                raw.cta,
+          showOnlyWithImages: raw.showOnlyWithImages,
+          navbarLogoColor:    raw.navbarLogoColor,
+          navbarLinkColor:    raw.navbarLinkColor,
+          navbarButtonColor:  raw.navbarButtonColor,
+          footerLogoColor:    raw.footerLogoColor,
+          heroTitle:          raw.heroTitle,
+          heroSubtitle:       raw.heroSubtitle,
+          heroTitleColor:     raw.heroTitleColor,
+          heroSubtitleColor:  raw.heroSubtitleColor,
+          footerCompany:      raw.footerCompany,
+          footerTagline:      raw.footerTagline,
+          footerWebsite:      raw.footerWebsite,
+          footerCompanyColor: raw.footerCompanyColor,
+          footerTaglineColor: raw.footerTaglineColor,
+          footerWebsiteColor: raw.footerWebsiteColor,
+        };
       }
     } catch (err) {
       this.logger.warn(`No se pudo leer la paleta guardada: ${err.message}`);
@@ -50,7 +88,9 @@ export class PortalConfigService {
       const { Vibrant } = require('node-vibrant/node');
       const palette = await Vibrant.from(imageUrl).getPalette();
 
+      const currentPalette = this.getPalette();
       const colors: PortalPaletteDto = {
+        ...currentPalette,   // preserva showOnlyWithImages, navbarLogoColor, footerLogoColor
         dark:    palette.DarkVibrant?.hex  ?? FALLBACK.dark,
         primary: palette.Vibrant?.hex      ?? FALLBACK.primary,
         light:   palette.LightVibrant?.hex ?? FALLBACK.light,

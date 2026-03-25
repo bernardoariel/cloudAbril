@@ -60,7 +60,7 @@
                 <div>
                   <p class="text-xs text-gray-400 uppercase font-semibold">Precio</p>
                   <p class="text-2xl font-bold text-gray-700">{{ formatPrice(producto.Precio) }}</p>
-                  <p class="text-xs text-green-500 font-medium">Lista</p>
+                  <p class="text-xs text-green-500 font-medium uppercase">Lista</p>
                 </div>
               </div>
             </div>
@@ -134,9 +134,10 @@ const openModal = () => { showModal.value = true; };
 const closeModal = () => { showModal.value = false; };
 
 const contactWhatsApp = () => {
-  const name = producto.value?.Producto || 'producto';
+  const name = (producto.value?.Producto || 'producto').trim();
   const code = producto.value?.CodProducto || '';
-  const msg = `Hola! Estoy interesado en: ${name} (Código: ${code}). Me darían más información?`;
+  const productUrl = window.location.href;
+  const msg = `Hola! Estoy interesado en: *${name}* (Código: ${code}).\n🔗 ${productUrl}\n\n¿Me darían más información?`;
   const phone = import.meta.env.VITE_WHATSAPP_CONTACT_NUMBER || '';
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
   window.open(url, '_blank');

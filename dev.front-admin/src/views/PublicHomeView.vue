@@ -4,8 +4,8 @@
     <!-- HERO con buscador -->
     <section class="hero-section py-12 px-4">
       <div class="max-w-5xl mx-auto text-center">
-        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-2 drop-shadow-md">Encontrá lo que buscás</h2>
-        <p class="text-white/80 text-lg mb-8">Los mejores productos, las mejores opciones de pago</p>
+        <h2 class="text-3xl md:text-4xl font-extrabold mb-2 drop-shadow-md" :style="{ color: portalSettings.heroTitleColor === 'white' ? '#ffffff' : portalSettings.heroTitleColor }">{{ portalSettings.heroTitle }}</h2>
+        <p class="text-lg mb-8" :style="{ color: portalSettings.heroSubtitleColor === 'white' ? '#ffffff' : portalSettings.heroSubtitleColor }">{{ portalSettings.heroSubtitle }}</p>
         
         <!-- BUSCADOR reutilizando la misma lógica que SearchProductView -->
         <div class="bg-white rounded-2xl shadow-2xl p-4 md:p-6 flex flex-col md:flex-row gap-4 max-w-4xl mx-auto">
@@ -196,15 +196,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProducts } from '../modules/sqlserver/products/composable/useProducts';
 import { useSucursales } from '../modules/sqlserver/sucursales/composable/useSucursales';
 import { useMarcas } from '../modules/sqlserver/marcas/composable/useMarcas';
 import { formatPrice } from '../common/helpers/formatPrice';
+import { useAuthStore } from '@/store/useAuth';
 import imgDefault from '@/assets/img/No_Image_Available.jpg';
 
 const router = useRouter();
+
+// Settings del portal (provistos por PublicLayout) y estado de auth
+const portalSettings = inject<{
+  showOnlyWithImages: boolean;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroTitleColor: string;
+  heroSubtitleColor: string;
+}>('portalSettings', {
+  showOnlyWithImages: false,
+  heroTitle: 'Encontrá lo que buscás',
+  heroSubtitle: 'Los mejores productos, las mejores opciones de pago',
+  heroTitleColor: 'white',
+  heroSubtitleColor: 'white',
+});
+const authStore = useAuthStore();
+const isAdminViewing = computed(() => !!authStore.user);
 const searchTerm = ref('');
 const searchInput = ref<HTMLInputElement | null>(null);
 const isInputFocused = ref(false);
@@ -288,6 +306,11 @@ const filteredProducts = computed(() => {
         (p.Descripcion && p.Descripcion.toLowerCase().includes(t))
       )
     );
+  }
+  
+  // Ocultar productos sin imagen (solo cuando NO es admin viewing)
+  if (portalSettings.showOnlyWithImages && !isAdminViewing.value) {
+    result = result.filter(p => !!p.Imagen);
   }
   
   return result;

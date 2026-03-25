@@ -1,6 +1,21 @@
 {
-  "dark": "#7B2D8E",
-  "primary": "#9B30FF",
-  "light": "#C850C0",
-  "cta": "#EF7E00"
+  "dark": "#640caf",
+  "primary": "#f7c005",
+  "light": "#f5e36c",
+  "cta": "#EF7E00",
+  "showOnlyWithImages": true,
+  "navbarLogoColor": "#1264af",
+  "navbarLinkColor": "white",
+  "navbarButtonColor": "#594a4a",
+  "footerLogoColor": "original",
+  "heroTitle": "Encontrá lo que buscás",
+  "heroSubtitle": "Los mejores productos, las mejores opciones de pago",
+  "heroTitleColor": "white",
+  "heroSubtitleColor": "#000000",
+  "footerCompany": "Abril Amoblamientos!",
+  "footerTagline": "abril vive en vos",
+  "footerWebsite": "abrilamoblamientos.com.ar",
+  "footerCompanyColor": "white",
+  "footerTaglineColor": "white",
+  "footerWebsiteColor": "white"
 }

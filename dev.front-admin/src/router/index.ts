@@ -160,7 +160,7 @@ const routes = [
         path: '/portal-config',
         name: 'portalConfig',
         component: PortalConfigView,
-        meta: { title: 'Colores del Portal', requiresAuth: false },
+        meta: { title: 'Colores del Portal', requiresAuth: true },
       },
     ],
   },
