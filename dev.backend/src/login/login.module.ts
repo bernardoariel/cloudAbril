@@ -11,7 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
     TypeOrmModule.forFeature([LoginCliente], 'sqlserverConnection'),
     PassportModule,
     JwtModule.register({
-      secret: 'clientes123',
+      secret: process.env.JWT_SECRET_CLIENTS || 'clientes123',
       signOptions: { expiresIn: '60s' },
     })
   ],

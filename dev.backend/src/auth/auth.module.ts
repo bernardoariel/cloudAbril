@@ -11,7 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
     TypeOrmModule.forFeature([Usuarios], 'sqlserverConnection'),
     PassportModule,
     JwtModule.register({
-      secret: 'yourSecretKey',  // Define una clave secreta para firmar los tokens
+      secret: process.env.JWT_SECRET || 'yourSecretKey',  // Define una clave secreta para firmar los tokens
       signOptions: { expiresIn: '10s' },  // Duración del token
     }),
   ],

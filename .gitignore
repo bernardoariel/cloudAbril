@@ -20,12 +20,19 @@ nginx/acme.sh/
 .env.production
 .env.development
 *.env
+.env.prod
+.env.qa
+**/.env.prod
+**/.env.qa
+**/.env.development
+**/.env.local
 
 # Firebase config files with sensitive data
 firebase-config.ts
 firebase-admin.config.ts
 **/firebase-config.ts
 **/firebase-admin.config.ts
+**/firebase-service-account.json
 
 # Database files
 *.db
