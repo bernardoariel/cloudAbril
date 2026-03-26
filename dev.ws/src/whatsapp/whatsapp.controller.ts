@@ -91,7 +91,7 @@ export class WhatsAppController {
       to: b.to,
       template: {
         name: 'moroso_1',
-        language: { code: 'es' },
+        language: { code: 'en' },
         components: [
           {
             type: 'body',

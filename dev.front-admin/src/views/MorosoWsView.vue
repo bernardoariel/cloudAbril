@@ -263,9 +263,9 @@ interface Moroso {
 }
 
 // ── Umbrales de mora desde .env ───────────────────────────────────────────
-const DIAS_1 = parseInt(import.meta.env.VITE_MOROSO_DIAS_1 ?? '30');
-const DIAS_2 = parseInt(import.meta.env.VITE_MOROSO_DIAS_2 ?? '60');
-const DIAS_3 = parseInt(import.meta.env.VITE_MOROSO_DIAS_3 ?? '90');
+const DIAS_1 = parseInt(import.meta.env.VITE_MOROSO_DIAS_1 ?? '10');
+const DIAS_2 = parseInt(import.meta.env.VITE_MOROSO_DIAS_2 ?? '30');
+const DIAS_3 = parseInt(import.meta.env.VITE_MOROSO_DIAS_3 ?? '60');
 
 const categoriaSugerida = (dias: number): 'moroso_1' | 'moroso_2' | 'moroso_3' => {
   if (dias <= DIAS_1) return 'moroso_1';
