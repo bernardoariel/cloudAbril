@@ -19,6 +19,29 @@ export interface AvisoPagoPayload {
   importe: string;
 }
 
+export interface Moroso1Payload {
+  to: string;
+  cliente: string;
+  nro_cuenta: string;
+  importe: string;
+  fecha_max_pago: string;
+}
+
+export interface Moroso2Payload {
+  to: string;
+  nombre: string;
+  nro_cuenta: string;
+  importe: string;
+}
+
+export interface Moroso3Payload {
+  to: string;
+  fecha: string;
+  nombre: string;
+  nro_cuenta: string;
+  importe: string;
+}
+
 class WhatsappService {
   private baseUrl = import.meta.env.VITE_WHATSAPP_BASE_URL;
 
@@ -28,6 +51,18 @@ class WhatsappService {
 
   async sendAvisoPago(data: AvisoPagoPayload) {
     return this.post(`${this.baseUrl}/whatsapp/aviso_pago_abril`, data);
+  }
+
+  async sendMoroso1(data: Moroso1Payload) {
+    return this.post(`${this.baseUrl}/whatsapp/moroso_1`, data);
+  }
+
+  async sendMoroso2(data: Moroso2Payload) {
+    return this.post(`${this.baseUrl}/whatsapp/moroso_2`, data);
+  }
+
+  async sendMoroso3(data: Moroso3Payload) {
+    return this.post(`${this.baseUrl}/whatsapp/moroso_3`, data);
   }
 
   async sendHolaAbril(to: string) {

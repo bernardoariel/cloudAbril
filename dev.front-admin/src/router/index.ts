@@ -14,6 +14,7 @@ import VentasWsView from '@/views/VentasWsView.vue';
 import PagosWsView from '@/views/PagosWsView.vue';
 import PersonalizadoWsView from '@/views/PersonalizadoWsView.vue';
 import ClientesMoraWsView from '@/views/clientesMoraWsView.vue';
+import MorosoWsView from '@/views/MorosoWsView.vue';
 import WhatsAppHistorialView from '@/views/WhatsAppHistorialView.vue';
 import WhatsAppPersonalizadoView from '@/views/WhatsAppPersonalizadoView.vue';
 import WsWebhookMessagesView from '@/views/WsWebhookMessages.vue';
@@ -131,6 +132,12 @@ const routes = [
         name: 'clientesMoraWs',
         component: ClientesMoraWsView,
         meta: { title: 'pagos', requiresAuth: false },
+      },
+      {
+        path: '/moroso',
+        name: 'morosoWs',
+        component: MorosoWsView,
+        meta: { title: 'Morosos WhatsApp', requiresAuth: false },
       },
       {
         path: '/personalizadows',

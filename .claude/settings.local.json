@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/Ariel -path */.cache -prune -o -path *AppData/Roaming* -prune -o -type d -name *github* -o -name *antigravity*)",
+      "Bash(npx skills:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)",
+      "Bash(ls -la /d/DESARROLLOS/ABRIL/cloudAbril/dev.*)",
+      "Bash(git checkout:*)",
+      "Bash(npm install:*)"
+    ]
+  }
+}

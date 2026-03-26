@@ -3,6 +3,9 @@ import { Request, Response } from 'express';
 
 import { AvisoCompraDto } from './dto/aviso-compra.dto';
 import { AvisoPagoDto } from './dto/aviso-pago.dto';
+import { Moroso1Dto } from './dto/moroso-1.dto';
+import { Moroso2Dto } from './dto/moroso-2.dto';
+import { Moroso3Dto } from './dto/moroso-3.dto';
 import { WhatsAppService } from './whatsapp.service';
 import { WebhookService } from './webhook.service';
 import { WhatsAppWebhookDto } from './dto/webhook.dto';
@@ -77,6 +80,92 @@ export class WhatsAppController {
     const messageId = result?.messages?.[0]?.id;
     const textoResumen = `[Template: aviso_pago_abril] Nombre: ${b.nombre}, Recibo: ${b.nro_recibo}, Importe: ${b.importe}`;
     await this.webhookService.saveOutgoingMessage(b.to, textoResumen, messageId, b.nombre);
+
+    return result;
+  }
+
+  @Post('moroso_1')
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+  async sendMoroso1(@Body() b: Moroso1Dto) {
+    const result = await this.wsService.sendTemplate({
+      to: b.to,
+      template: {
+        name: 'moroso_1',
+        language: { code: 'es' },
+        components: [
+          {
+            type: 'body',
+            parameters: [
+              { type: 'text', parameter_name: 'cliente', text: b.cliente },
+              { type: 'text', parameter_name: 'nro_cuenta', text: b.nro_cuenta },
+              { type: 'text', parameter_name: 'importe', text: b.importe },
+              { type: 'text', parameter_name: 'fecha_max_pago', text: b.fecha_max_pago },
+            ],
+          },
+        ],
+      },
+    });
+
+    const messageId = result?.messages?.[0]?.id;
+    const resumen = `[Template: moroso_1] Cliente: ${b.cliente}, Cuenta: ${b.nro_cuenta}, Importe: ${b.importe}`;
+    await this.webhookService.saveOutgoingMessage(b.to, resumen, messageId, b.cliente);
+
+    return result;
+  }
+
+  @Post('moroso_2')
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+  async sendMoroso2(@Body() b: Moroso2Dto) {
+    const result = await this.wsService.sendTemplate({
+      to: b.to,
+      template: {
+        name: 'moroso_2',
+        language: { code: 'es_AR' },
+        components: [
+          {
+            type: 'body',
+            parameters: [
+              { type: 'text', parameter_name: 'nombre', text: b.nombre },
+              { type: 'text', parameter_name: 'nro_cuenta', text: b.nro_cuenta },
+              { type: 'text', parameter_name: 'importe', text: b.importe },
+            ],
+          },
+        ],
+      },
+    });
+
+    const messageId = result?.messages?.[0]?.id;
+    const resumen = `[Template: moroso_2] Nombre: ${b.nombre}, Cuenta: ${b.nro_cuenta}, Importe: ${b.importe}`;
+    await this.webhookService.saveOutgoingMessage(b.to, resumen, messageId, b.nombre);
+
+    return result;
+  }
+
+  @Post('moroso_3')
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+  async sendMoroso3(@Body() b: Moroso3Dto) {
+    const result = await this.wsService.sendTemplate({
+      to: b.to,
+      template: {
+        name: 'moroso_3',
+        language: { code: 'es_AR' },
+        components: [
+          {
+            type: 'body',
+            parameters: [
+              { type: 'text', parameter_name: 'fecha', text: b.fecha },
+              { type: 'text', parameter_name: 'nombre', text: b.nombre },
+              { type: 'text', parameter_name: 'nro_cuenta', text: b.nro_cuenta },
+              { type: 'text', parameter_name: 'importe', text: b.importe },
+            ],
+          },
+        ],
+      },
+    });
+
+    const messageId = result?.messages?.[0]?.id;
+    const resumen = `[Template: moroso_3] Nombre: ${b.nombre}, Cuenta: ${b.nro_cuenta}, Importe: ${b.importe}`;
+    await this.webhookService.saveOutgoingMessage(b.to, resumen, messageId, b.nombre);
 
     return result;
   }

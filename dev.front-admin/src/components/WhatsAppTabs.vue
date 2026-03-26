@@ -40,6 +40,16 @@
       :checked="route.name === 'whatsappPersonalizado'"
       @change="go('/whatsapp/personalizado')"
     />
+    <input
+      type="radio"
+      name="whatsTabs"
+      role="tab"
+      aria-label="⚠️ Morosos"
+      class="tab tab-moroso"
+      :class="route.name === 'morosoWs' ? 'tab-active' : ''"
+      :checked="route.name === 'morosoWs'"
+      @change="go('/moroso')"
+    />
     <!-- <input
       type="radio"
       name="whatsTabs"
@@ -143,6 +153,18 @@ function go(path: string) {
 .tab-personalizado:hover:not(.tab-active) {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1)) !important;
   color: #d97706 !important;
+}
+
+/* Estilos específicos para Morosos - Rojo */
+.tab-moroso.tab-active {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.tab-moroso:hover:not(.tab-active) {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1)) !important;
+  color: #dc2626 !important;
 }
 
 /* Contenedor de tabs */
