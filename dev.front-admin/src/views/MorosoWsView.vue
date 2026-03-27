@@ -31,6 +31,11 @@
                 </svg>
                 Importar Excel
               </button>
+              <button class="btn btn-ghost btn-sm btn-circle" title="Ver formato del Excel" @click="isFormatoModalOpen = true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
               <button
                 class="btn btn-warning btn-sm gap-1"
                 :disabled="seleccionados.length === 0"
@@ -185,6 +190,77 @@
       </div>
     </div>
   </div>
+
+  <!-- ── Modal Formato Excel ──────────────────────────────────────────── -->
+  <dialog class="modal" :open="isFormatoModalOpen">
+    <div class="modal-box max-w-2xl">
+      <h3 class="font-bold text-lg mb-1">Formato del Excel</h3>
+      <p class="text-xs text-base-content/60 mb-4">El archivo debe tener estas columnas en la primera fila (nombres flexibles):</p>
+
+      <div class="overflow-x-auto mb-4">
+        <table class="table table-sm text-xs border border-base-300 rounded-lg">
+          <thead class="bg-base-200">
+            <tr>
+              <th>Columna</th>
+              <th>Requerida</th>
+              <th>Alternativas aceptadas</th>
+              <th>Ejemplo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-mono font-bold">nombre</td>
+              <td><span class="badge badge-error badge-xs">Sí</span></td>
+              <td class="font-mono text-base-content/60">cliente, apellido_nombre</td>
+              <td>GARCIA, MARIA</td>
+            </tr>
+            <tr>
+              <td class="font-mono font-bold">telefono</td>
+              <td><span class="badge badge-error badge-xs">Sí</span></td>
+              <td class="font-mono text-base-content/60">tel, celular, telefono1</td>
+              <td>3704299434</td>
+            </tr>
+            <tr>
+              <td class="font-mono font-bold">dias_mora</td>
+              <td><span class="badge badge-warning badge-xs">Rec.</span></td>
+              <td class="font-mono text-base-content/60">dias mora, diasmora, dias</td>
+              <td>35</td>
+            </tr>
+            <tr>
+              <td class="font-mono font-bold">importe</td>
+              <td><span class="badge badge-warning badge-xs">Rec.</span></td>
+              <td class="font-mono text-base-content/60">saldo, monto, deuda</td>
+              <td>$345.000</td>
+            </tr>
+            <tr>
+              <td class="font-mono font-bold">nro_cuenta</td>
+              <td><span class="badge badge-ghost badge-xs">No</span></td>
+              <td class="font-mono text-base-content/60">nro cuenta, cuenta, nrocuenta</td>
+              <td>09100234</td>
+            </tr>
+            <tr>
+              <td class="font-mono font-bold">fecha_max_pago</td>
+              <td><span class="badge badge-ghost badge-xs">No</span></td>
+              <td class="font-mono text-base-content/60">fecha max pago, vencimiento</td>
+              <td>28/04/2026</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bg-base-200 rounded-lg p-3 text-xs space-y-1">
+        <p><span class="font-semibold">Teléfono:</span> solo 10 dígitos sin 0 ni 15 (ej: 3704299434). El sistema agrega el 54.</p>
+        <p><span class="font-semibold">fecha_max_pago:</span> formato dd/mm/aaaa. Si no viene, se calcula hoy + 5 días.</p>
+        <p><span class="font-semibold">dias_mora:</span> número calculado por el sistema — determina la categoría (recordatorio / moroso / re-moroso).</p>
+        <p><span class="font-semibold">Filas sin nombre o sin teléfono</span> se descartan automáticamente.</p>
+      </div>
+
+      <div class="modal-action">
+        <button class="btn btn-sm" @click="isFormatoModalOpen = false">Cerrar</button>
+      </div>
+    </div>
+    <div class="modal-backdrop" @click="isFormatoModalOpen = false"></div>
+  </dialog>
 
   <!-- ── Modal Enviar ─────────────────────────────────────────────────── -->
   <dialog class="modal" :open="isWhatsModalOpen">
@@ -430,6 +506,7 @@ _d.setDate(_d.getDate() + 5);
 const fechaMaxPago = ref(_d.toISOString().split('T')[0]);
 
 const isWhatsModalOpen = ref(false);
+const isFormatoModalOpen = ref(false);
 const isSendingWhatsApp = ref(false);
 const whatsAppMessage = ref('');
 
